@@ -154,7 +154,7 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
-- `a3b7c9d` Verse-level anchoring, footnotes & cross-references (#30)
+- `11f1521` Verse-level anchoring, footnotes & cross-references (#30)
 - `aa8fbb0` Editorial workflow states: transitions, history, due dates (#20)
 - `8e502e8` Frontend: lint + Vitest UI tests (auth guard, projects, editor) (#19)
 - `e07c98c` Enable + validate AI drafts: tuned prompt, graceful errors, demo-mode mock (#18)
