@@ -18,6 +18,8 @@ export const itemsApi = {
   get: (projectId, itemId) => api(`/projects/${projectId}/items/${itemId}`),
   create: (projectId, payload) =>
     api(`/projects/${projectId}/items`, { method: "POST", body: payload }),
+  update: (projectId, itemId, payload) =>
+    api(`/projects/${projectId}/items/${itemId}`, { method: "PATCH", body: payload }),
   versions: (projectId, itemId) => api(`/projects/${projectId}/items/${itemId}/versions`),
   addVersion: (projectId, itemId, payload) =>
     api(`/projects/${projectId}/items/${itemId}/versions`, { method: "POST", body: payload }),

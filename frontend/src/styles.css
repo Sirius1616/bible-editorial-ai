@@ -907,6 +907,74 @@ table.items-table {
   margin-top: 0.7rem;
 }
 
+.anchor-group {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.anchor-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--faint);
+  margin-bottom: 0.45rem;
+}
+
+.anchor-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.anchor-row input {
+  width: auto;
+  min-width: 110px;
+}
+
+.anchor-edit {
+  margin-bottom: 1.1rem;
+}
+
+.anchor-edit .anchor-row {
+  margin-top: 0.7rem;
+}
+
+.refs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.ref-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ref-field span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--faint);
+}
+
+.ref-field textarea {
+  resize: vertical;
+  font-family: inherit;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.7rem;
+  background: var(--surface-1);
+  color: var(--text);
+}
+
+.ref-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .editor-actions {
   display: flex;
   align-items: center;
@@ -1113,6 +1181,10 @@ table.items-table {
   }
 
   .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .refs-grid {
     grid-template-columns: 1fr;
   }
 }

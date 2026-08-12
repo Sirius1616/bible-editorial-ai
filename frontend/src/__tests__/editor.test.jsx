@@ -87,6 +87,8 @@ describe("Editor save-version happy path", () => {
       expect(itemsApi.addVersion).toHaveBeenCalledWith("1", "10", {
         body: "Edited body text.",
         change_note: "Manual edit",
+        footnotes: [],
+        cross_refs: [],
       });
     });
     expect(await screen.findByText("Saved")).toBeInTheDocument();

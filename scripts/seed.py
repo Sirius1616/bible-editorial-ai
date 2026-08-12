@@ -43,20 +43,84 @@ def seed() -> None:
             select(ContentItem).where(ContentItem.project_id == project.id)
         ):
             items = [
-                ("God So Loved the World", "John 3:16-17", "study_note", "in_review"),
-                ("Faith and Works", "James 2:14-26", "study_note", "in_progress"),
-                ("Morning by Morning", "Psalm 30:5", "devotional", "qa"),
-                ("Grace in Action", "Ephesians 2:8-10", "study_note", "ready"),
-                ("The Shepherd's Psalm", "Psalm 23", "devotional", "assigned"),
-                ("Light of the World", "John 8:12", "reference_entry", "archived"),
+                (
+                    "God So Loved the World",
+                    "John 3:16-17",
+                    "study_note",
+                    "in_review",
+                    "John", 3, 16, "John", 3, 17,
+                    "The original Greek word monogenes is better rendered 'only Son'.",
+                    ["John 1:14", "1 John 4:9"],
+                ),
+                (
+                    "Faith and Works",
+                    "James 2:14-26",
+                    "study_note",
+                    "in_progress",
+                    "James", 2, 14, "James", 2, 26,
+                    "Compare Paul on justification in Romans 4.",
+                    ["Romans 4:1-5", "Genesis 15:6"],
+                ),
+                (
+                    "Morning by Morning",
+                    "Psalm 30:5",
+                    "devotional",
+                    "qa",
+                    "Psalm", 30, 5, None, None, None,
+                    None,
+                    ["Psalm 5:3", "Lamentations 3:22-23"],
+                ),
+                (
+                    "Grace in Action",
+                    "Ephesians 2:8-10",
+                    "study_note",
+                    "ready",
+                    "Ephesians", 2, 8, "Ephesians", 2, 10,
+                    "Grace is God's gift, not a wage earned.",
+                    ["Romans 11:6", "Titus 3:4-7"],
+                ),
+                (
+                    "The Shepherd's Psalm",
+                    "Psalm 23",
+                    "devotional",
+                    "assigned",
+                    "Psalm", 23, 1, "Psalm", 23, 6,
+                    None,
+                    ["John 10:11", "Isaiah 40:11"],
+                ),
+                (
+                    "Light of the World",
+                    "John 8:12",
+                    "reference_entry",
+                    "archived",
+                    "John", 8, 12, None, None, None,
+                    None,
+                    ["John 1:4-5", "Matthew 5:14"],
+                ),
             ]
-            for title, passage, content_type, status in items:
+            for item_data in items:
+                (
+                    title,
+                    passage,
+                    content_type,
+                    status,
+                    start_book, start_chapter, start_verse,
+                    end_book, end_chapter, end_verse,
+                    footnote,
+                    cross_refs,
+                ) = item_data
                 item = ContentItem(
                     project_id=project.id,
                     title=title,
                     passage=passage,
                     content_type=content_type,
                     status=status,
+                    verse_start_book=start_book,
+                    verse_start_chapter=start_chapter,
+                    verse_start_verse=start_verse,
+                    verse_end_book=end_book,
+                    verse_end_chapter=end_chapter,
+                    verse_end_verse=end_verse,
                 )
                 db.add(item)
                 db.flush()
@@ -66,6 +130,10 @@ def seed() -> None:
                         version_number=1,
                         body=f"{title} — initial draft for the sample project.",
                         change_note="Initial placeholder draft",
+                        footnotes=[
+                            {"number": 1, "text": footnote}
+                        ] if footnote else [],
+                        cross_refs=cross_refs,
                     )
                 )
             print(f"Created sample content items: {len(items)}")

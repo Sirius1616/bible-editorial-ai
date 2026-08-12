@@ -3,11 +3,19 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
+class VerseAnchor(BaseModel):
+    book: str
+    chapter: int
+    verse: int
+
+
 class ContentItemCreate(BaseModel):
     title: str
     passage: str = ""
     content_type: str = "study_note"
     due_date: datetime | None = None
+    verse_start: VerseAnchor | None = None
+    verse_end: VerseAnchor | None = None
 
 
 class ContentItemUpdate(BaseModel):
@@ -15,6 +23,8 @@ class ContentItemUpdate(BaseModel):
     passage: str | None = None
     content_type: str | None = None
     due_date: datetime | None = None
+    verse_start: VerseAnchor | None = None
+    verse_end: VerseAnchor | None = None
 
 
 class ContentItemOut(BaseModel):
@@ -27,6 +37,8 @@ class ContentItemOut(BaseModel):
     content_type: str
     status: str
     due_date: datetime | None
+    verse_start: VerseAnchor | None
+    verse_end: VerseAnchor | None
     created_at: datetime
     updated_at: datetime
 
@@ -39,6 +51,8 @@ class ContentVersionOut(BaseModel):
     version_number: int
     body: str
     change_note: str | None
+    footnotes: list | None
+    cross_refs: list | None
     created_at: datetime
 
 

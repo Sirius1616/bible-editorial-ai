@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -16,12 +16,62 @@ class ContentItem(Base):
     content_type: Mapped[str] = mapped_column(String(50), default="study_note")
     status: Mapped[str] = mapped_column(String(50), default="assigned")
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    verse_start_book: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    verse_start_chapter: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    verse_start_verse: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    verse_end_book: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    verse_end_chapter: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    verse_end_verse: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+    @property
+    def verse_start(self) -> dict | None:
+        if (
+            self.verse_start_book
+            and self.verse_start_chapter is not None
+            and self.verse_start_verse is not None
+        ):
+            return {
+                "book": self.verse_start_book,
+                "chapter": self.verse_start_chapter,
+                "verse": self.verse_start_verse,
+            }
+        return None
+
+    @property
+    def verse_end(self) -> dict | None:
+        if (
+            self.verse_end_book
+            and self.verse_end_chapter is not None
+            and self.verse_end_verse is not None
+        ):
+            return {
+                "book": self.verse_end_book,
+                "chapter": self.verse_end_chapter,
+                "verse": self.verse_end_verse,
+            }
+        return None
+
+    def verse_label(self) -> str | None:
+        start = self.verse_start
+        end = self.verse_end
+        if not start:
+            return self.passage or None
+        if end and (end["book"], end["chapter"]) == (start["book"], start["chapter"]):
+            if end["verse"] == start["verse"]:
+                return f"{start['book']} {start['chapter']}:{start['verse']}"
+            return f"{start['book']} {start['chapter']}:{start['verse']}-{end['verse']}"
+        if end:
+            return (
+                f"{start['book']} {start['chapter']}:{start['verse']}-"
+                f"{end['book']} {end['chapter']}:{end['verse']}"
+            )
+        return f"{start['book']} {start['chapter']}:{start['verse']}"
 
     project: Mapped["Project"] = relationship(back_populates="content_items")  # noqa: F821
     versions: Mapped[list["ContentVersion"]] = relationship(
@@ -45,6 +95,8 @@ class ContentVersion(Base):
     version_number: Mapped[int] = mapped_column(default=1)
     body: Mapped[str] = mapped_column(Text, default="")
     change_note: Mapped[str | None] = mapped_column(Text, default="")
+    footnotes: Mapped[list | None] = mapped_column(JSON, nullable=True, default=list)
+    cross_refs: Mapped[list | None] = mapped_column(JSON, nullable=True, default=list)
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

@@ -44,9 +44,20 @@ export default function Editor() {
   const [selected, setSelected] = useState(null);
   const [body, setBody] = useState("");
   const [changeNote, setChangeNote] = useState("");
+  const [footnotesText, setFootnotesText] = useState("");
+  const [crossRefsText, setCrossRefsText] = useState("");
   const [commentBody, setCommentBody] = useState("");
   const [nextStatus, setNextStatus] = useState("");
   const [transitioning, setTransitioning] = useState(false);
+  const [anchor, setAnchor] = useState({
+    book: "",
+    startChapter: "",
+    startVerse: "",
+    endChapter: "",
+    endVerse: "",
+  });
+  const [savingAnchor, setSavingAnchor] = useState(false);
+  const [anchorSaved, setAnchorSaved] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(true);
@@ -71,10 +82,19 @@ export default function Editor() {
       setComments(c);
       setHistory(h);
       setNextStatus((ALLOWED_TRANSITIONS[item.status] ?? [])[0] ?? "");
+      setAnchor({
+        book: item.verse_start?.book ?? "",
+        startChapter: item.verse_start?.chapter?.toString() ?? "",
+        startVerse: item.verse_start?.verse?.toString() ?? "",
+        endChapter: item.verse_end?.chapter?.toString() ?? "",
+        endVerse: item.verse_end?.verse?.toString() ?? "",
+      });
       const latest = v[v.length - 1];
       if (latest) {
         setSelected(latest);
         setBody(latest.body);
+        setFootnotesText((latest.footnotes ?? []).map((n) => (typeof n === "string" ? n : n.text)).join("\n"));
+        setCrossRefsText((latest.cross_refs ?? []).join("\n"));
       }
     } catch (err) {
       setError(err.message);
@@ -102,6 +122,15 @@ export default function Editor() {
       const v = await itemsApi.addVersion(projectId, itemId, {
         body,
         change_note: changeNote || "Manual edit",
+        footnotes: footnotesText
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((text, i) => ({ number: i + 1, text })),
+        cross_refs: crossRefsText
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean),
       });
       await load();
       setChangeNote("");
@@ -111,6 +140,33 @@ export default function Editor() {
       setError(err.message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveAnchor(e) {
+    e.preventDefault();
+    setSavingAnchor(true);
+    setError("");
+    setInfo("");
+    try {
+      const updated = await itemsApi.update(projectId, itemId, {
+        verse_start:
+          anchor.book && anchor.startChapter && anchor.startVerse
+            ? { book: anchor.book, chapter: Number(anchor.startChapter), verse: Number(anchor.startVerse) }
+            : null,
+        verse_end:
+          anchor.book && anchor.endChapter && anchor.endVerse
+            ? { book: anchor.book, chapter: Number(anchor.endChapter), verse: Number(anchor.endVerse) }
+            : null,
+      });
+      setItem((prev) => ({ ...prev, passage: updated.passage, verse_start: updated.verse_start, verse_end: updated.verse_end }));
+      setAnchorSaved(true);
+      setTimeout(() => setAnchorSaved(false), 2500);
+      setInfo(`Verse anchor updated: ${updated.passage || "none"}.`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSavingAnchor(false);
     }
   }
 
@@ -275,6 +331,60 @@ export default function Editor() {
       {error && <div className="alert alert-error">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
 
+      <form className="card anchor-edit" onSubmit={saveAnchor}>
+        <div className="panel-title">
+          <h2>
+            <BookOpen size={15} /> Verse anchor
+          </h2>
+          <span className="muted" style={{ fontSize: "0.8rem" }}>
+            Anchors this item to an exact book/chapter/verse range.
+          </span>
+        </div>
+        <div className="anchor-row">
+          <input
+            placeholder="Book (e.g. John)"
+            value={anchor.book}
+            onChange={(e) => setAnchor({ ...anchor, book: e.target.value })}
+          />
+          <input
+            type="number"
+            min="1"
+            placeholder="Start ch."
+            value={anchor.startChapter}
+            onChange={(e) => setAnchor({ ...anchor, startChapter: e.target.value })}
+          />
+          <input
+            type="number"
+            min="1"
+            placeholder="Start v."
+            value={anchor.startVerse}
+            onChange={(e) => setAnchor({ ...anchor, startVerse: e.target.value })}
+          />
+          <span className="muted">→</span>
+          <input
+            type="number"
+            min="1"
+            placeholder="End ch."
+            value={anchor.endChapter}
+            onChange={(e) => setAnchor({ ...anchor, endChapter: e.target.value })}
+          />
+          <input
+            type="number"
+            min="1"
+            placeholder="End v."
+            value={anchor.endVerse}
+            onChange={(e) => setAnchor({ ...anchor, endVerse: e.target.value })}
+          />
+          <div className="row" style={{ gap: "0.5rem" }}>
+            {anchorSaved && <span className="badge badge-approved">Saved</span>}
+            <button type="submit" className="primary" disabled={savingAnchor}>
+              {savingAnchor ? <Loader2 size={16} className="spinner" /> : <Save size={16} />}
+              Save anchor
+            </button>
+          </div>
+        </div>
+      </form>
+
       <div className="editor-grid">
         <div>
           <div className="editor-panel">
@@ -302,6 +412,26 @@ export default function Editor() {
                 value={changeNote}
                 onChange={(e) => setChangeNote(e.target.value)}
               />
+              <div className="refs-grid">
+                <label className="ref-field">
+                  <span>Footnotes (one per line)</span>
+                  <textarea
+                    rows={3}
+                    placeholder={"e.g. Greek: monogenes, only-begotten."}
+                    value={footnotesText}
+                    onChange={(e) => setFootnotesText(e.target.value)}
+                  />
+                </label>
+                <label className="ref-field">
+                  <span>Cross-references (one per line)</span>
+                  <textarea
+                    rows={3}
+                    placeholder={"e.g. John 1:14"}
+                    value={crossRefsText}
+                    onChange={(e) => setCrossRefsText(e.target.value)}
+                  />
+                </label>
+              </div>
               <div className="editor-actions">
                 <span className="muted" style={{ fontSize: "0.8rem" }}>
                   {body.length} characters
@@ -339,6 +469,8 @@ export default function Editor() {
                     onClick={() => {
                       setSelected(v);
                       setBody(v.body);
+                      setFootnotesText((v.footnotes ?? []).map((n) => (typeof n === "string" ? n : n.text)).join("\n"));
+                      setCrossRefsText((v.cross_refs ?? []).join("\n"));
                     }}
                   >
                     <div className="version-meta">

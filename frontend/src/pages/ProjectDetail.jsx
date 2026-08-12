@@ -35,6 +35,13 @@ export default function ProjectDetail() {
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ title: "", passage: "", content_type: "study_note" });
+  const [anchor, setAnchor] = useState({
+    book: "",
+    startChapter: "",
+    startVerse: "",
+    endChapter: "",
+    endVerse: "",
+  });
 
   async function load() {
     setLoading(true);
@@ -62,9 +69,21 @@ export default function ProjectDetail() {
     setCreating(true);
     setError("");
     try {
-      await itemsApi.create(projectId, form);
+      const payload = {
+        ...form,
+        verse_start:
+          anchor.book && anchor.startChapter && anchor.startVerse
+            ? { book: anchor.book, chapter: Number(anchor.startChapter), verse: Number(anchor.startVerse) }
+            : undefined,
+        verse_end:
+          anchor.book && anchor.endChapter && anchor.endVerse
+            ? { book: anchor.book, chapter: Number(anchor.endChapter), verse: Number(anchor.endVerse) }
+            : undefined,
+      };
+      await itemsApi.create(projectId, payload);
       setShowForm(false);
       setForm({ title: "", passage: "", content_type: "study_note" });
+      setAnchor({ book: "", startChapter: "", startVerse: "", endChapter: "", endVerse: "" });
       await load();
     } catch (err) {
       setError(err.message);
@@ -188,6 +207,46 @@ export default function ProjectDetail() {
                     <option key={t}>{t}</option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            <div className="anchor-group">
+              <div className="anchor-label">Verse anchor (book — chapter : verse)</div>
+              <div className="anchor-row">
+                <input
+                  placeholder="Book (e.g. John)"
+                  value={anchor.book}
+                  onChange={(e) => setAnchor({ ...anchor, book: e.target.value })}
+                />
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="Start ch."
+                  value={anchor.startChapter}
+                  onChange={(e) => setAnchor({ ...anchor, startChapter: e.target.value })}
+                />
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="Start v."
+                  value={anchor.startVerse}
+                  onChange={(e) => setAnchor({ ...anchor, startVerse: e.target.value })}
+                />
+                <span className="muted">→</span>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="End ch."
+                  value={anchor.endChapter}
+                  onChange={(e) => setAnchor({ ...anchor, endChapter: e.target.value })}
+                />
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="End v."
+                  value={anchor.endVerse}
+                  onChange={(e) => setAnchor({ ...anchor, endVerse: e.target.value })}
+                />
               </div>
             </div>
             <div className="form-actions">

@@ -32,10 +32,13 @@ def export_item(
         .order_by(ContentVersion.version_number.desc())
     )
     body = latest.body if latest else ""
+    passage = item.verse_label() or item.passage or ""
+    footnotes = latest.footnotes if latest else []
+    cross_refs = latest.cross_refs if latest else []
     if format == "docx":
         filename = f"{item.title.replace(' ', '_').lower()}.docx"
         return Response(
-            content=export_docx(item.title, body),
+            content=export_docx(item.title, body, passage, footnotes, cross_refs),
             media_type=(
                 "application/vnd.openxmlformats-officedocument."
                 "wordprocessingml.document"
@@ -46,7 +49,7 @@ def export_item(
         raise HTTPException(status_code=400, detail="Unsupported export format")
     filename = f"{item.title.replace(' ', '_').lower()}.md"
     return Response(
-        content=export_markdown(item.title, body),
+        content=export_markdown(item.title, body, passage, footnotes, cross_refs),
         media_type="text/markdown",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
