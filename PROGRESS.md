@@ -59,6 +59,63 @@ Stack: FastAPI + PostgreSQL + React (Vite) + n8n, with AI draft generation.
 
 ---
 
+## Build sequence (dependency-safe order)
+
+Priorities are set on GitHub issues as `priority:p1` … `priority:p5`. Each phase can be built
+in parallel internally; phases run in order because later phases depend on earlier ones.
+
+### Phase 1 — MVP close-out (`priority:p1`)
+| # | Issue | Builds on |
+|---|-------|-----------|
+| #15 | Docker: auto-run migrations on backend start | — |
+| #17 | Backend: .docx export | export endpoint (done) |
+| #19 | Frontend: lint + tests | — (fully parallel) |
+| #16 | Verify full stack with `docker compose up` | #15 |
+| #18 | Enable + validate AI drafts (OPENAI_API_KEY) | draft endpoint (done) |
+| #41 | Demo video + screenshots for Upwork pitch | everything in P1 |
+
+### Phase 2 — Editorial core (`priority:p2`)
+| # | Issue | Builds on |
+|---|-------|-----------|
+| #20 | Editorial workflow states (assigned → … → ready) | item status (done) |
+| #30 | Verse-level anchoring, footnotes & cross-refs | item model (done) |
+| #32 | Version diffing | versions (done) |
+| #31 | Inline / verse-level comments | #30 + comments (done) |
+
+### Phase 3 — AI intelligence (`priority:p3`)
+| # | Issue | Builds on |
+|---|-------|-----------|
+| #24 | AI: style-guide adherence checking | AI pattern from #18 |
+| #27 | AI: translation comparison sidebar | #30 verse anchoring |
+| #25 | AI: Scripture QA (verse-quote verification) | #30 + #27 |
+| #26 | AI: cross-reference & terminology consistency | #30 |
+
+### Phase 4 — Team & workspace (`priority:p4`)
+| # | Issue | Builds on |
+|---|-------|-----------|
+| #36 | Multi-tenancy (workspaces) + invites | — (start early, team base) |
+| #21 | Roles & permissions | #36 |
+| #22 | Task assignment & workload | #36 |
+| #23 | Notifications (in-app + email) | #22 |
+| #34 | Mentions & audit trail | #23 (audit part is standalone) |
+| #33 | Multi-step sign-off workflow | #20 + #21 |
+
+### Phase 5 — Publishing, business & integrations (`priority:p5`)
+| # | Issue | Builds on |
+|---|-------|-----------|
+| #28 | USFM/USX import & export | #30 |
+| #29 | Manuscript import (Word/PDF) | — |
+| #35 | PDF export | #17 pattern |
+| #40 | n8n automations (webhooks) | — |
+| #37 | Billing & subscriptions (Stripe) | #36 |
+| #38 | Global search | — |
+| #39 | Analytics dashboard | — |
+
+**Rule of thumb:** never start a phase until the phases before it are done; within a phase,
+parallelize freely (they don't block each other).
+
+---
+
 ## How to run locally
 
 ```bash
