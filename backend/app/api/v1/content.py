@@ -15,7 +15,9 @@ from app.schemas.content import (
     ContentItemOut,
     ContentItemUpdate,
     ContentVersionOut,
+    VersionDiffOut,
 )
+from app.services.diff import diff_bodies
 
 router = APIRouter(prefix="/projects/{project_id}/items", tags=["content"])
 
@@ -178,6 +180,38 @@ def list_versions(
             .order_by(ContentVersion.version_number)
         )
     )
+
+
+@router.get("/{item_id}/versions/diff", response_model=VersionDiffOut)
+def diff_versions(
+    project_id: int,
+    item_id: int,
+    from_version: int,
+    to_version: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    project = get_owned_project(project_id, user, db)
+    get_owned_item(project, item_id, db)
+    versions = list(
+        db.scalars(
+            select(ContentVersion)
+            .where(
+                ContentVersion.content_item_id == item_id,
+                ContentVersion.version_number.in_([from_version, to_version]),
+            )
+        )
+    )
+    if len(versions) != 2:
+        raise HTTPException(
+            status_code=404, detail="One or both versions not found"
+        )
+    by_number = {v.version_number: v for v in versions}
+    return {
+        "from_version": from_version,
+        "to_version": to_version,
+        **diff_bodies(by_number[from_version].body or "", by_number[to_version].body or ""),
+    }
 
 
 @router.post("/{item_id}/comments", response_model=CommentOut, status_code=status.HTTP_201_CREATED)

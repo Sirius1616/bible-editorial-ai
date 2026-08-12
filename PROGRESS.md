@@ -81,7 +81,7 @@ in parallel internally; phases run in order because later phases depend on earli
 |---|-------|-----------|
 | #20 | Editorial workflow states (assigned → … → ready) | item status (done) ✅ |
 | #30 | Verse-level anchoring, footnotes & cross-refs | item model (done) ✅ |
-| #32 | Version diffing | versions (done) |
+| #32 | Version diffing | versions (done) ✅ |
 | #31 | Inline / verse-level comments | #30 + comments (done) |
 
 ### Phase 2 — Editorial core (in progress)
@@ -92,7 +92,9 @@ in parallel internally; phases run in order because later phases depend on earli
   (book/chapter/verse) anchors on items with auto-derived passage label, `footnotes` + `cross_refs`
   JSON on versions, editor anchor panel + footnote/cross-ref fields, Markdown/.docx export sections,
   seeded demo references
-- 🔶 #31, #32 not started
+- ✅ #32 Version diffing: `GET .../versions/diff?from=N&to=M` (word- and line-level via
+  `difflib.SequenceMatcher`), editor "Compare…" picker with green add / red remove highlights
+- 🔶 #31 not started
 
 ### Phase 3 — AI intelligence (`priority:p3`)
 | # | Issue | Builds on |

@@ -43,6 +43,18 @@ class ContentItemOut(BaseModel):
     updated_at: datetime
 
 
+class DiffSegment(BaseModel):
+    op: str
+    text: str
+
+
+class VersionDiffOut(BaseModel):
+    from_version: int
+    to_version: int
+    word_diff: list[DiffSegment]
+    line_diff: list[DiffSegment]
+
+
 class ContentVersionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

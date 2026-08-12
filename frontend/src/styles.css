@@ -983,6 +983,78 @@ table.items-table {
   margin-top: 0.9rem;
 }
 
+.diff-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.diff-pickers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.diff-pickers label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.diff-pickers span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--faint);
+}
+
+.diff-pickers select {
+  width: 100%;
+  font-size: 0.8rem;
+}
+
+.diff-view {
+  margin-top: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  padding: 0.7rem 0.8rem;
+}
+
+.diff-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.diff-body {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.diff-eq {
+  margin-right: 0.25em;
+}
+
+.diff-add {
+  background: rgba(52, 168, 83, 0.18);
+  color: #1d7a34;
+  border-radius: 3px;
+  padding: 0 0.15em;
+  margin-right: 0.25em;
+}
+
+.diff-del {
+  background: rgba(234, 67, 53, 0.16);
+  color: #c0392b;
+  border-radius: 3px;
+  padding: 0 0.15em;
+  margin-right: 0.25em;
+  text-decoration: line-through;
+}
+
 .side-panel {
   display: flex;
   flex-direction: column;

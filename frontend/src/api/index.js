@@ -21,6 +21,10 @@ export const itemsApi = {
   update: (projectId, itemId, payload) =>
     api(`/projects/${projectId}/items/${itemId}`, { method: "PATCH", body: payload }),
   versions: (projectId, itemId) => api(`/projects/${projectId}/items/${itemId}/versions`),
+  diffVersions: (projectId, itemId, fromVersion, toVersion) =>
+    api(
+      `/projects/${projectId}/items/${itemId}/versions/diff?from_version=${fromVersion}&to_version=${toVersion}`,
+    ),
   addVersion: (projectId, itemId, payload) =>
     api(`/projects/${projectId}/items/${itemId}/versions`, { method: "POST", body: payload }),
   comments: (projectId, itemId) => api(`/projects/${projectId}/items/${itemId}/comments`),
