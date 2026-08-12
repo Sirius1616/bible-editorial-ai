@@ -79,10 +79,16 @@ in parallel internally; phases run in order because later phases depend on earli
 ### Phase 2 — Editorial core (`priority:p2`)
 | # | Issue | Builds on |
 |---|-------|-----------|
-| #20 | Editorial workflow states (assigned → … → ready) | item status (done) |
+| #20 | Editorial workflow states (assigned → … → ready) | item status (done) ✅ |
 | #30 | Verse-level anchoring, footnotes & cross-refs | item model (done) |
 | #32 | Version diffing | versions (done) |
 | #31 | Inline / verse-level comments | #30 + comments (done) |
+
+### Phase 2 — Editorial core (in progress)
+- ✅ #20 Editorial workflow states: `assigned → in_progress → in_review → qa → ready → archived`,
+  validated transitions + auditable `status_history`, optional `due_date`, frontend badges/filters/
+  transition control/history panel, seed data across all states
+- 🔶 #30, #31, #32 not started
 
 ### Phase 3 — AI intelligence (`priority:p3`)
 | # | Issue | Builds on |
@@ -144,6 +150,7 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `aa8fbb0` Editorial workflow states: transitions, history, due dates (#20)
 - `8e502e8` Frontend: lint + Vitest UI tests (auth guard, projects, editor) (#19)
 - `e07c98c` Enable + validate AI drafts: tuned prompt, graceful errors, demo-mode mock (#18)
 - `403c8c2` Backend: .docx export (format=md|docx) (#17)
