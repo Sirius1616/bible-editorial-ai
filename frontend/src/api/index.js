@@ -30,6 +30,8 @@ export const itemsApi = {
   comments: (projectId, itemId) => api(`/projects/${projectId}/items/${itemId}/comments`),
   addComment: (projectId, itemId, body) =>
     api(`/projects/${projectId}/items/${itemId}/comments`, { method: "POST", body }),
+  updateComment: (projectId, itemId, commentId, body) =>
+    api(`/projects/${projectId}/items/${itemId}/comments/${commentId}`, { method: "PATCH", body }),
   generateDraft: (projectId, itemId) =>
     api(`/projects/${projectId}/items/${itemId}/draft`, { method: "POST" }),
   review: (projectId, itemId, action) =>

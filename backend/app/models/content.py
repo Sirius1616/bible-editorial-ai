@@ -111,12 +111,24 @@ class Comment(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     content_item_id: Mapped[int] = mapped_column(ForeignKey("content_items.id"))
     author_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    parent_id: Mapped[int | None] = mapped_column(ForeignKey("comments.id"), nullable=True)
     body: Mapped[str] = mapped_column(Text)
+    resolved: Mapped[bool] = mapped_column(default=False)
+    anchor_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    anchor_start: Mapped[str | None] = mapped_column(Text, nullable=True)
+    anchor_end: Mapped[str | None] = mapped_column(Text, nullable=True)
+    anchor_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
 
     content_item: Mapped["ContentItem"] = relationship(back_populates="comments")
+    parent: Mapped["Comment | None"] = relationship(
+        back_populates="replies", remote_side=[id]
+    )
+    replies: Mapped[list["Comment"]] = relationship(
+        back_populates="parent", cascade="all, delete-orphan"
+    )
 
 
 class StatusHistory(Base):

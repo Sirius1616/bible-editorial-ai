@@ -1055,6 +1055,107 @@ table.items-table {
   text-decoration: line-through;
 }
 
+.annotations-view {
+  min-height: 320px;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-family: var(--font-serif);
+  font-size: 1.02rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+  cursor: text;
+}
+
+.inline-mark {
+  background: rgba(241, 196, 15, 0.35);
+  border-bottom: 2px solid rgba(241, 196, 15, 0.9);
+  border-radius: 2px;
+  padding: 0 0.1em;
+  cursor: pointer;
+}
+
+.inline-mark.active {
+  background: rgba(52, 152, 219, 0.35);
+  border-bottom-color: var(--accent);
+}
+
+.comment-composer {
+  margin-top: 0.9rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.8rem;
+}
+
+.anchor-tabs {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.55rem;
+}
+
+.anchor-tab {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-1);
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.anchor-tab.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.anchor-preview {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.comment-anchor {
+  margin: 0.3rem 0;
+  display: inline-block;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 0.9rem;
+  margin-top: 0.35rem;
+}
+
+.comment-item.resolved .comment-body {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.comment-thread {
+  border-left: 2px solid var(--border);
+  padding-left: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.comment-thread.thread-active {
+  border-left-color: var(--accent);
+  animation: thread-pulse 1.2s ease-out;
+}
+
+@keyframes thread-pulse {
+  0% {
+    background: rgba(52, 152, 219, 0.12);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.reply-box {
+  margin-top: 0.5rem;
+}
+
 .side-panel {
   display: flex;
   flex-direction: column;

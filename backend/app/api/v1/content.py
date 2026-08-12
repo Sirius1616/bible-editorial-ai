@@ -11,6 +11,7 @@ from app.models.user import User
 from app.schemas.content import (
     CommentCreate,
     CommentOut,
+    CommentUpdate,
     ContentItemCreate,
     ContentItemOut,
     ContentItemUpdate,
@@ -224,8 +225,44 @@ def add_comment(
 ) -> Comment:
     project = get_owned_project(project_id, user, db)
     get_owned_item(project, item_id, db)
-    comment = Comment(content_item_id=item_id, author_id=user.id, body=payload.body)
+    if payload.parent_id is not None:
+        parent = db.get(Comment, payload.parent_id)
+        if parent is None or parent.content_item_id != item_id:
+            raise HTTPException(status_code=404, detail="Parent comment not found")
+        if parent.parent_id is not None:
+            raise HTTPException(status_code=400, detail="Comments can only be one level deep")
+    comment = Comment(
+        content_item_id=item_id,
+        author_id=user.id,
+        body=payload.body,
+        parent_id=payload.parent_id,
+        anchor_type=payload.anchor_type,
+        anchor_start=payload.anchor_start,
+        anchor_end=payload.anchor_end,
+        anchor_text=payload.anchor_text,
+    )
     db.add(comment)
+    db.commit()
+    db.refresh(comment)
+    return comment
+
+
+@router.patch("/{item_id}/comments/{comment_id}", response_model=CommentOut)
+def update_comment(
+    project_id: int,
+    item_id: int,
+    comment_id: int,
+    payload: CommentUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Comment:
+    project = get_owned_project(project_id, user, db)
+    get_owned_item(project, item_id, db)
+    comment = db.get(Comment, comment_id)
+    if comment is None or comment.content_item_id != item_id:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(comment, field, value)
     db.commit()
     db.refresh(comment)
     return comment

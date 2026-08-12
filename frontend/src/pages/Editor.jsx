@@ -35,6 +35,95 @@ function formatDate(iso) {
   });
 }
 
+function anchorLabel(v) {
+  if (!v.book || !v.chapter || !v.verse) return null;
+  let label = `${v.book} ${v.chapter}:${v.verse}`;
+  if (v.endVerse) label += `-${v.endVerse}`;
+  return label;
+}
+
+function buildAnnotatedParts(body, comments) {
+  const anchors = comments
+    .filter(
+      (c) =>
+        c.anchor_type === "text" &&
+        !c.parent_id &&
+        c.anchor_start != null &&
+        c.anchor_end != null,
+    )
+    .map((c) => ({
+      id: c.id,
+      start: parseInt(c.anchor_start, 10),
+      end: parseInt(c.anchor_end, 10),
+    }))
+    .filter((a) => Number.isFinite(a.start) && Number.isFinite(a.end) && a.end > a.start);
+  if (!anchors.length) return null;
+  anchors.sort((a, b) => a.start - b.start);
+  const parts = [];
+  let cursor = 0;
+  for (const a of anchors) {
+    const s = Math.min(Math.max(a.start, cursor), body.length);
+    const e = Math.min(Math.max(a.end, s), body.length);
+    if (s > cursor) parts.push({ key: `p${cursor}`, text: body.slice(cursor, s) });
+    if (e > s) parts.push({ key: `c${a.id}`, commentId: a.id, text: body.slice(s, e) });
+    cursor = e;
+  }
+  if (cursor < body.length) parts.push({ key: `p${cursor}`, text: body.slice(cursor) });
+  return parts;
+}
+
+function CommentCard({ comment, onResolve, onReply, replyOpen, replyBody, setReplyBody, onSubmitReply }) {
+  const anchor =
+    comment.anchor_type === "verse" && comment.anchor_start
+      ? comment.anchor_start
+      : comment.anchor_text
+        ? `“${comment.anchor_text}”`
+        : null;
+  return (
+    <div className={`comment-item ${comment.resolved ? "resolved" : ""}`}>
+      <div className="comment-meta">
+        <span className="comment-author">
+          <span className="avatar" style={{ width: "24px", height: "24px", fontSize: "0.65rem" }}>
+            {"E"}
+          </span>
+          Editor
+        </span>
+        <span>{formatDate(comment.created_at)}</span>
+      </div>
+      {anchor && <span className="badge badge-type comment-anchor">{anchor}</span>}
+      <p className="comment-body">{comment.body}</p>
+      {comment.resolved && <span className="badge badge-approved">Resolved</span>}
+      {(onResolve || onReply) && (
+        <div className="comment-actions">
+          {onResolve && (
+            <button className="link-button" onClick={onResolve}>
+              {comment.resolved ? "Reopen" : "Resolve"}
+            </button>
+          )}
+          {onReply && (
+            <button className="link-button" onClick={onReply}>
+              {replyOpen ? "Cancel" : "Reply"}
+            </button>
+          )}
+        </div>
+      )}
+      {replyOpen && (
+        <form className="comment-box reply-box" onSubmit={onSubmitReply}>
+          <input
+            autoFocus
+            placeholder="Reply…"
+            value={replyBody}
+            onChange={(e) => setReplyBody(e.target.value)}
+          />
+          <button type="submit" disabled={!replyBody.trim()}>
+            <Send size={16} />
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
 export default function Editor() {
   const { projectId, itemId } = useParams();
   const [project, setProject] = useState(null);
@@ -47,7 +136,6 @@ export default function Editor() {
   const [changeNote, setChangeNote] = useState("");
   const [footnotesText, setFootnotesText] = useState("");
   const [crossRefsText, setCrossRefsText] = useState("");
-  const [commentBody, setCommentBody] = useState("");
   const [nextStatus, setNextStatus] = useState("");
   const [transitioning, setTransitioning] = useState(false);
   const [anchor, setAnchor] = useState({
@@ -64,6 +152,15 @@ export default function Editor() {
   const [toVersion, setToVersion] = useState("");
   const [diff, setDiff] = useState(null);
   const [diffLoading, setDiffLoading] = useState(false);
+  const [commentBody, setCommentBody] = useState("");
+  const [selectionAnchor, setSelectionAnchor] = useState(null);
+  const [anchorMode, setAnchorMode] = useState("none");
+  const [vAnchor, setVAnchor] = useState({ book: "", chapter: "", verse: "", endVerse: "" });
+  const [annotationsOn, setAnnotationsOn] = useState(false);
+  const [activeCommentId, setActiveCommentId] = useState(null);
+  const [replyTo, setReplyTo] = useState(null);
+  const [replyBody, setReplyBody] = useState("");
+  const [commentLoading, setCommentLoading] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(true);
@@ -93,6 +190,12 @@ export default function Editor() {
         startChapter: item.verse_start?.chapter?.toString() ?? "",
         startVerse: item.verse_start?.verse?.toString() ?? "",
         endChapter: item.verse_end?.chapter?.toString() ?? "",
+        endVerse: item.verse_end?.verse?.toString() ?? "",
+      });
+      setVAnchor({
+        book: item.verse_start?.book ?? "",
+        chapter: item.verse_start?.chapter?.toString() ?? "",
+        verse: item.verse_start?.verse?.toString() ?? "",
         endVerse: item.verse_end?.verse?.toString() ?? "",
       });
       const latest = v[v.length - 1];
@@ -265,10 +368,56 @@ export default function Editor() {
   async function addComment(e) {
     e.preventDefault();
     if (!commentBody.trim()) return;
+    setCommentLoading(true);
     setError("");
     try {
-      await itemsApi.addComment(projectId, itemId, { body: commentBody });
+      const payload = { body: commentBody.trim() };
+      if (anchorMode === "text" && selectionAnchor) {
+        payload.anchor_type = "text";
+        payload.anchor_start = String(selectionAnchor.start);
+        payload.anchor_end = String(selectionAnchor.end);
+        payload.anchor_text = selectionAnchor.text;
+      } else if (anchorMode === "verse" && vAnchor.book && vAnchor.chapter && vAnchor.verse) {
+        payload.anchor_type = "verse";
+        payload.anchor_start = `${vAnchor.book} ${vAnchor.chapter}:${vAnchor.verse}`;
+        if (vAnchor.endVerse) {
+          payload.anchor_end = `${vAnchor.book} ${vAnchor.chapter}:${vAnchor.endVerse}`;
+        }
+        payload.anchor_text = anchorLabel(vAnchor);
+      }
+      await itemsApi.addComment(projectId, itemId, payload);
       setCommentBody("");
+      setSelectionAnchor(null);
+      setAnchorMode("none");
+      setComments(await itemsApi.comments(projectId, itemId));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCommentLoading(false);
+    }
+  }
+
+  async function submitReply(e, parentId) {
+    e.preventDefault();
+    if (!replyBody.trim()) return;
+    setCommentLoading(true);
+    setError("");
+    try {
+      await itemsApi.addComment(projectId, itemId, { body: replyBody.trim(), parent_id: parentId });
+      setReplyBody("");
+      setReplyTo(null);
+      setComments(await itemsApi.comments(projectId, itemId));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCommentLoading(false);
+    }
+  }
+
+  async function toggleResolve(comment) {
+    setError("");
+    try {
+      await itemsApi.updateComment(projectId, itemId, comment.id, { resolved: !comment.resolved });
       setComments(await itemsApi.comments(projectId, itemId));
     } catch (err) {
       setError(err.message);
@@ -431,20 +580,73 @@ export default function Editor() {
               <h2>
                 <Sparkles size={15} /> Content editor
               </h2>
-              <button className="accent" onClick={generateDraft} disabled={drafting}>
-                {drafting ? <Loader2 size={15} className="spinner" /> : <Sparkles size={15} />}
-                {drafting ? "Generating…" : "Generate AI draft"}
-              </button>
+              <div className="row" style={{ gap: "0.4rem" }}>
+                <button
+                  className={annotationsOn ? "accent" : undefined}
+                  onClick={() => setAnnotationsOn((s) => !s)}
+                  title="Toggle inline comment markers"
+                >
+                  <MessageSquare size={14} />
+                  {annotationsOn ? "Editing" : "Annotate"}
+                </button>
+                <button className="accent" onClick={generateDraft} disabled={drafting}>
+                  {drafting ? <Loader2 size={15} className="spinner" /> : <Sparkles size={15} />}
+                  {drafting ? "Generating…" : "Generate AI draft"}
+                </button>
+              </div>
             </div>
 
             <form onSubmit={saveVersion}>
-              <textarea
-                className="editor-textarea"
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="Write or edit content here. The project style guide will guide AI drafts."
-                rows={16}
-              />
+              {annotationsOn ? (
+                <div
+                  className="annotations-view"
+                  onClick={(e) => {
+                    const mark = e.target.closest("[data-comment-id]");
+                    if (mark) {
+                      setActiveCommentId(Number(mark.dataset.commentId));
+                      document
+                        .querySelector("#comments-panel")
+                        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                    }
+                  }}
+                >
+                  {(() => {
+                    const parts = buildAnnotatedParts(body, comments);
+                    if (!parts) return body || "No content to annotate.";
+                    return parts.map((p) =>
+                      p.commentId != null ? (
+                        <mark
+                          key={p.key}
+                          className={`inline-mark ${activeCommentId === p.commentId ? "active" : ""}`}
+                          data-comment-id={p.commentId}
+                        >
+                          {p.text}
+                        </mark>
+                      ) : (
+                        <span key={p.key}>{p.text}</span>
+                      ),
+                    );
+                  })()}
+                </div>
+              ) : (
+                <textarea
+                  className="editor-textarea"
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  onSelect={(e) => {
+                    const el = e.target;
+                    if (el.selectionStart !== el.selectionEnd && el.value.slice(el.selectionStart, el.selectionEnd).trim()) {
+                      setSelectionAnchor({
+                        start: el.selectionStart,
+                        end: el.selectionEnd,
+                        text: el.value.slice(el.selectionStart, el.selectionEnd),
+                      });
+                    }
+                  }}
+                  placeholder="Write or edit content here. The project style guide will guide AI drafts."
+                  rows={16}
+                />
+              )}
               <input
                 className="editor-note-input"
                 placeholder="Change note (e.g. revised intro, checked against NIV)"
@@ -626,7 +828,7 @@ export default function Editor() {
             )}
           </div>
 
-          <div className="editor-panel">
+          <div className="editor-panel comments-panel" id="comments-panel">
             <div className="panel-title">
               <h2>
                 <MessageSquare size={15} /> Comments
@@ -635,36 +837,113 @@ export default function Editor() {
             </div>
             {comments.length === 0 ? (
               <p className="muted" style={{ fontSize: "0.85rem" }}>
-                No comments yet. Leave feedback for the editorial team.
+                No comments yet. Select text in the editor or pick a verse to anchor feedback.
               </p>
             ) : (
               <div>
-                {comments.map((c) => (
-                  <div key={c.id} className="comment-item">
-                    <div className="comment-meta">
-                      <span className="comment-author">
-                        <span className="avatar" style={{ width: "24px", height: "24px", fontSize: "0.65rem" }}>
-                          {"E"}
-                        </span>
-                        Editor
-                      </span>
-                      <span>{formatDate(c.created_at)}</span>
-                    </div>
-                    <p className="comment-body">{c.body}</p>
-                  </div>
-                ))}
+                {(() => {
+                  const repliesByParent = {};
+                  comments.forEach((c) => {
+                    if (c.parent_id) (repliesByParent[c.parent_id] ||= []).push(c);
+                  });
+                  return comments
+                    .filter((c) => !c.parent_id)
+                    .map((c) => (
+                      <div
+                        key={c.id}
+                        className={`comment-thread ${activeCommentId === c.id ? "thread-active" : ""}`}
+                      >
+                        <CommentCard
+                          comment={c}
+                          onResolve={() => toggleResolve(c)}
+                          onReply={() => {
+                            setReplyTo(replyTo === c.id ? null : c.id);
+                            setReplyBody("");
+                          }}
+                          replyOpen={replyTo === c.id}
+                          replyBody={replyBody}
+                          setReplyBody={setReplyBody}
+                          onSubmitReply={(e) => submitReply(e, c.id)}
+                        />
+                        {(repliesByParent[c.id] || []).map((r) => (
+                          <CommentCard
+                            key={r.id}
+                            comment={r}
+                            onResolve={() => toggleResolve(r)}
+                          />
+                        ))}
+                      </div>
+                    ));
+                })()}
               </div>
             )}
-            <form className="comment-box" onSubmit={addComment}>
-              <input
-                placeholder="Add a comment…"
-                value={commentBody}
-                onChange={(e) => setCommentBody(e.target.value)}
-              />
-              <button type="submit" disabled={!commentBody.trim()}>
-                <Send size={16} />
-              </button>
-            </form>
+
+            <div className="comment-composer">
+              <div className="anchor-tabs">
+                <button
+                  className={`anchor-tab ${anchorMode === "none" ? "active" : ""}`}
+                  onClick={() => setAnchorMode("none")}
+                >
+                  Whole item
+                </button>
+                <button
+                  className={`anchor-tab ${anchorMode === "text" ? "active" : ""}`}
+                  title="Select text in the editor first"
+                  onClick={() => setAnchorMode(selectionAnchor ? "text" : "none")}
+                >
+                  Selected text{selectionAnchor ? "" : " (select in editor)"}
+                </button>
+                <button
+                  className={`anchor-tab ${anchorMode === "verse" ? "active" : ""}`}
+                  onClick={() => setAnchorMode("verse")}
+                >
+                  Verse
+                </button>
+              </div>
+              {anchorMode === "text" && (
+                <p className="anchor-preview">Anchored to “{selectionAnchor?.text}”</p>
+              )}
+              {anchorMode === "verse" && (
+                <div className="anchor-row" style={{ marginTop: "0.5rem" }}>
+                  <input
+                    placeholder="Book"
+                    value={vAnchor.book}
+                    onChange={(e) => setVAnchor({ ...vAnchor, book: e.target.value })}
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Ch."
+                    value={vAnchor.chapter}
+                    onChange={(e) => setVAnchor({ ...vAnchor, chapter: e.target.value })}
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="V."
+                    value={vAnchor.verse}
+                    onChange={(e) => setVAnchor({ ...vAnchor, verse: e.target.value })}
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="End v."
+                    value={vAnchor.endVerse}
+                    onChange={(e) => setVAnchor({ ...vAnchor, endVerse: e.target.value })}
+                  />
+                </div>
+              )}
+              <form className="comment-box" onSubmit={addComment}>
+                <input
+                  placeholder="Add a comment…"
+                  value={commentBody}
+                  onChange={(e) => setCommentBody(e.target.value)}
+                />
+                <button type="submit" disabled={!commentBody.trim() || commentLoading}>
+                  {commentLoading ? <Loader2 size={16} className="spinner" /> : <Send size={16} />}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>

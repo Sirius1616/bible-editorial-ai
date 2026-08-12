@@ -82,7 +82,7 @@ in parallel internally; phases run in order because later phases depend on earli
 | #20 | Editorial workflow states (assigned → … → ready) | item status (done) ✅ |
 | #30 | Verse-level anchoring, footnotes & cross-refs | item model (done) ✅ |
 | #32 | Version diffing | versions (done) ✅ |
-| #31 | Inline / verse-level comments | #30 + comments (done) |
+| #31 | Inline / verse-level comments | #30 + comments (done) — in progress |
 
 ### Phase 2 — Editorial core (in progress)
 - ✅ #20 Editorial workflow states: `assigned → in_progress → in_review → qa → ready → archived`,
@@ -94,7 +94,16 @@ in parallel internally; phases run in order because later phases depend on earli
   seeded demo references
 - ✅ #32 Version diffing: `GET .../versions/diff?from=N&to=M` (word- and line-level via
   `difflib.SequenceMatcher`), editor "Compare…" picker with green add / red remove highlights
-- 🔶 #31 not started
+- 🔶 #31 Inline / verse-level comments — **in progress** (backend done, frontend mostly done)
+  - Backend ✅: `Comment` gains `parent_id` (one-level threads), `resolved`, and anchors
+    (`anchor_type` text|verse, `anchor_start/end`, `anchor_text`); migration `f5e6d7c8b9a0`
+    applied; `POST /comments` accepts anchors + `parent_id`, new `PATCH /comments/{id}`
+    (resolved/body), 404/400 validation for replies; 2 backend tests (24 passing total)
+  - Frontend 🔶: anchored composer (Whole item / Selected text / Verse tabs), threaded
+    replies with Resolve/Reopen, "Annotate" toggle that renders inline `<mark>` markers for
+    text-anchored comments (click jumps to the thread). Build + 6 Vitest tests pass, lint
+    clean (0 errors). **Still to do:** add a Vitest test for the comment UI, run the live
+    Playwright smoke check, then close the issue
 
 ### Phase 3 — AI intelligence (`priority:p3`)
 | # | Issue | Builds on |
@@ -156,6 +165,7 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `(wip)` Inline / verse-level comments: backend anchors/threads/resolve + frontend composer/markers (#31)
 - `e1d6e5d` Version diffing: compare any two versions (word/line level) (#32)
 - `11f1521` Verse-level anchoring, footnotes & cross-references (#30)
 - `aa8fbb0` Editorial workflow states: transitions, history, due dates (#20)

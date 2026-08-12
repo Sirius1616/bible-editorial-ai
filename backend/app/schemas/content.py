@@ -70,6 +70,16 @@ class ContentVersionOut(BaseModel):
 
 class CommentCreate(BaseModel):
     body: str
+    parent_id: int | None = None
+    anchor_type: str | None = None
+    anchor_start: str | None = None
+    anchor_end: str | None = None
+    anchor_text: str | None = None
+
+
+class CommentUpdate(BaseModel):
+    body: str | None = None
+    resolved: bool | None = None
 
 
 class CommentOut(BaseModel):
@@ -78,7 +88,13 @@ class CommentOut(BaseModel):
     id: int
     content_item_id: int
     author_id: int | None
+    parent_id: int | None
     body: str
+    resolved: bool
+    anchor_type: str | None
+    anchor_start: str | None
+    anchor_end: str | None
+    anchor_text: str | None
     created_at: datetime
 
 
