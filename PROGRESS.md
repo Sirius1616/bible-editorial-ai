@@ -55,7 +55,7 @@ Stack: FastAPI + PostgreSQL + React (Vite) + n8n, with AI draft generation.
 | 2 | Verify full stack with `docker compose up` (PG + backend + frontend together) | ✅ done (issue #16) |
 | 3 | `.docx` export (currently Markdown only) | ✅ done (issue #17) |
 | 4 | Add `OPENAI_API_KEY` to `.env` to enable the AI draft endpoint | ✅ done (issue #18) |
-| 5 | Frontend tests / lint pass | ⬜ optional |
+| 5 | Frontend tests / lint pass | ✅ done (issue #19) |
 | 6 | Record demo video + screenshots for the Upwork pitch to Bible publishers | ⬜ user action |
 | 7 | (Post-MVP) n8n workflows, QA checker against translations, InDesign export | ⬜ deferred |
 
@@ -71,7 +71,7 @@ in parallel internally; phases run in order because later phases depend on earli
 |---|-------|-----------|
 | #15 | Docker: auto-run migrations on backend start | ✅ done |
 | #17 | Backend: .docx export | export endpoint (done) ✅ |
-| #19 | Frontend: lint + tests | — (fully parallel) |
+| #19 | Frontend: lint + tests | — (fully parallel) ✅ |
 | #16 | Verify full stack with `docker compose up` | ✅ done |
 | #18 | Enable + validate AI drafts (OPENAI_API_KEY) | draft endpoint (done) ✅ |
 | #41 | Demo video + screenshots for Upwork pitch | everything in P1 |
@@ -144,6 +144,7 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `8e502e8` Frontend: lint + Vitest UI tests (auth guard, projects, editor) (#19)
 - `e07c98c` Enable + validate AI drafts: tuned prompt, graceful errors, demo-mode mock (#18)
 - `403c8c2` Backend: .docx export (format=md|docx) (#17)
 - `ae4f72b` Polish frontend: professional design system, dashboard stats, item table, editor workspace
