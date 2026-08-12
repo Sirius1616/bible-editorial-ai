@@ -9,11 +9,13 @@ export const authApi = {
 
 export const projectsApi = {
   list: () => api("/projects"),
+  get: (projectId) => api(`/projects/${projectId}`),
   create: (payload) => api("/projects", { method: "POST", body: payload }),
 };
 
 export const itemsApi = {
   list: (projectId) => api(`/projects/${projectId}/items`),
+  get: (projectId, itemId) => api(`/projects/${projectId}/items/${itemId}`),
   create: (projectId, payload) =>
     api(`/projects/${projectId}/items`, { method: "POST", body: payload }),
   versions: (projectId, itemId) => api(`/projects/${projectId}/items/${itemId}/versions`),
