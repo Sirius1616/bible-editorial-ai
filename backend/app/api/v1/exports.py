@@ -8,7 +8,7 @@ from app.api.v1.projects import get_owned_project
 from app.db.session import get_db
 from app.models.content import ContentItem, ContentVersion
 from app.models.user import User
-from app.services.export import export_markdown
+from app.services.export import export_docx, export_markdown
 
 router = APIRouter(prefix="/projects/{project_id}/items/{item_id}/export", tags=["exports"])
 
@@ -17,6 +17,7 @@ router = APIRouter(prefix="/projects/{project_id}/items/{item_id}/export", tags=
 def export_item(
     project_id: int,
     item_id: int,
+    format: str = "md",
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Response:
@@ -31,6 +32,18 @@ def export_item(
         .order_by(ContentVersion.version_number.desc())
     )
     body = latest.body if latest else ""
+    if format == "docx":
+        filename = f"{item.title.replace(' ', '_').lower()}.docx"
+        return Response(
+            content=export_docx(item.title, body),
+            media_type=(
+                "application/vnd.openxmlformats-officedocument."
+                "wordprocessingml.document"
+            ),
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    if format != "md":
+        raise HTTPException(status_code=400, detail="Unsupported export format")
     filename = f"{item.title.replace(' ', '_').lower()}.md"
     return Response(
         content=export_markdown(item.title, body),

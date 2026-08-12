@@ -1,3 +1,7 @@
+from io import BytesIO
+
+from docx import Document
+
 from tests.conftest import auth_header
 
 
@@ -58,6 +62,61 @@ def test_project_crud_and_item_flow(client, token) -> None:
         json={"body": "Check this passage context."},
     )
     assert comment.status_code == 201
+
+
+def test_export_docx_format(client, token) -> None:
+    headers = auth_header(token)
+    project_id = _create_project(client, token)
+
+    item_response = client.post(
+        f"/api/v1/projects/{project_id}/items",
+        headers=headers,
+        json={"title": "Faith and Works", "passage": "James 2:14-26", "content_type": "study_note"},
+    )
+    item_id = item_response.json()["id"]
+
+    client.post(
+        f"/api/v1/projects/{project_id}/items/{item_id}/versions",
+        headers=headers,
+        json={"body": "Faith without works is dead."},
+    )
+
+    response = client.get(
+        f"/api/v1/projects/{project_id}/items/{item_id}/export",
+        params={"format": "docx"},
+        headers=headers,
+    )
+    assert response.status_code == 200
+    assert (
+        response.headers["content-type"]
+        == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+    assert "attachment; filename=" in response.headers["content-disposition"]
+    assert response.headers["content-disposition"].endswith(".docx\"")
+    assert response.content[:2] == b"PK"
+
+    document = Document(BytesIO(response.content))
+    assert document.paragraphs[0].text == "Faith and Works"
+    assert any(p.text == "Faith without works is dead." for p in document.paragraphs)
+
+
+def test_export_unsupported_format(client, token) -> None:
+    headers = auth_header(token)
+    project_id = _create_project(client, token)
+
+    item_response = client.post(
+        f"/api/v1/projects/{project_id}/items",
+        headers=headers,
+        json={"title": "Faith and Works", "passage": "James 2:14-26", "content_type": "study_note"},
+    )
+    item_id = item_response.json()["id"]
+
+    response = client.get(
+        f"/api/v1/projects/{project_id}/items/{item_id}/export",
+        params={"format": "pdf"},
+        headers=headers,
+    )
+    assert response.status_code == 400
 
 
 def test_other_users_cannot_access_project(client, token) -> None:

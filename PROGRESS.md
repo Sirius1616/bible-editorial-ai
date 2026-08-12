@@ -24,8 +24,8 @@ Stack: FastAPI + PostgreSQL + React (Vite) + n8n, with AI draft generation.
 - `ContentItems` create/list/get/update/delete, versions + comments
 - `Drafts` — AI generation endpoint (`POST .../draft`) → stored as a new `ContentVersion`
 - `Review` — approve/reject flow
-- `Export` — Markdown download
-- 6 passing backend tests (auth, health, project CRUD + item/review/export/comment happy path)
+- `Export` — Markdown + `.docx` download (`?format=md|docx`)
+- 8 passing backend tests (auth, health, project CRUD + item/review/export/comment happy path)
 
 ### Phase 3 — Frontend workspace ✅
 - Auth-guarded routing (`/login`, `/projects`, `/projects/:projectId`,
@@ -51,7 +51,7 @@ Stack: FastAPI + PostgreSQL + React (Vite) + n8n, with AI draft generation.
 |---|------|--------|
 | 1 | Docker: auto-run migrations on backend start (`alembic upgrade head` before uvicorn) | ✅ done (issue #15) |
 | 2 | Verify full stack with `docker compose up` (PG + backend + frontend together) | ✅ done (issue #16) |
-| 3 | `.docx` export (currently Markdown only) | 🔶 not done |
+| 3 | `.docx` export (currently Markdown only) | ✅ done (issue #17) |
 | 4 | Add `OPENAI_API_KEY` to `.env` to enable the AI draft endpoint (returns 503 without it) | 🔶 needs env var |
 | 5 | Frontend tests / lint pass | ⬜ optional |
 | 6 | Record demo video + screenshots for the Upwork pitch to Bible publishers | ⬜ user action |
@@ -68,7 +68,7 @@ in parallel internally; phases run in order because later phases depend on earli
 | # | Issue | Builds on |
 |---|-------|-----------|
 | #15 | Docker: auto-run migrations on backend start | ✅ done |
-| #17 | Backend: .docx export | export endpoint (done) |
+| #17 | Backend: .docx export | export endpoint (done) ✅ |
 | #19 | Frontend: lint + tests | — (fully parallel) |
 | #16 | Verify full stack with `docker compose up` | ✅ done |
 | #18 | Enable + validate AI drafts (OPENAI_API_KEY) | draft endpoint (done) |
@@ -135,7 +135,7 @@ npm install
 npm run dev                              # http://localhost:3000
 
 # 5. Tests
-uv run pytest                            # backend/tests, 6 passing
+uv run pytest                            # backend/tests, 8 passing
 ```
 
 ---
