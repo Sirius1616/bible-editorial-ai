@@ -48,7 +48,7 @@ def test_project_crud_and_item_flow(client, token) -> None:
         headers=headers,
         json={"action": "approve"},
     )
-    assert review.json()["status"] == "approved"
+    assert review.json()["status"] == "ready"
 
     export = client.get(
         f"/api/v1/projects/{project_id}/items/{item_id}/export", headers=headers

@@ -14,7 +14,8 @@ class ContentItem(Base):
     title: Mapped[str] = mapped_column(String(255))
     passage: Mapped[str | None] = mapped_column(String(100), default="")
     content_type: Mapped[str] = mapped_column(String(50), default="study_note")
-    status: Mapped[str] = mapped_column(String(50), default="draft")
+    status: Mapped[str] = mapped_column(String(50), default="assigned")
+    due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -29,6 +30,9 @@ class ContentItem(Base):
         order_by="ContentVersion.version_number",
     )
     comments: Mapped[list["Comment"]] = relationship(
+        back_populates="content_item", cascade="all, delete-orphan"
+    )
+    status_history: Mapped[list["StatusHistory"]] = relationship(
         back_populates="content_item", cascade="all, delete-orphan"
     )
 
@@ -61,3 +65,19 @@ class Comment(Base):
     )
 
     content_item: Mapped["ContentItem"] = relationship(back_populates="comments")
+
+
+class StatusHistory(Base):
+    __tablename__ = "status_history"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    content_item_id: Mapped[int] = mapped_column(ForeignKey("content_items.id"))
+    from_status: Mapped[str] = mapped_column(String(50))
+    to_status: Mapped[str] = mapped_column(String(50))
+    note: Mapped[str | None] = mapped_column(Text, default="")
+    changed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    content_item: Mapped["ContentItem"] = relationship(back_populates="status_history")

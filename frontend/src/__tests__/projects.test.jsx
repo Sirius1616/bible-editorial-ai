@@ -9,9 +9,9 @@ const mocks = vi.hoisted(() => ({
     { id: 2, name: "Devotional Series", description: "", translation: "NIV" },
   ],
   items: [
-    { id: 1, status: "approved" },
-    { id: 2, status: "draft" },
-    { id: 3, status: "rejected" },
+    { id: 1, status: "ready" },
+    { id: 2, status: "in_review" },
+    { id: 3, status: "archived" },
   ],
 }));
 
@@ -41,9 +41,9 @@ describe("Projects page", () => {
 
     expect(await screen.findByText("Sample Study Bible")).toBeInTheDocument();
     expect(screen.getByText("Devotional Series")).toBeInTheDocument();
-    expect(screen.getByText("1 approved")).toBeInTheDocument();
-    expect(screen.getByText("1 rejected")).toBeInTheDocument();
-    expect(screen.getByText("33% approved")).toBeInTheDocument();
+    expect(screen.getByText("1 ready")).toBeInTheDocument();
+    expect(screen.getByText("1 archived")).toBeInTheDocument();
+    expect(screen.getByText("33% ready")).toBeInTheDocument();
   });
 
   it("creates a project from the form", async () => {

@@ -42,23 +42,33 @@ def seed() -> None:
         if not db.scalar(
             select(ContentItem).where(ContentItem.project_id == project.id)
         ):
-            item = ContentItem(
-                project_id=project.id,
-                title="God So Loved the World",
-                passage="John 3:16-17",
-                content_type="study_note",
-            )
-            db.add(item)
-            db.flush()
-            db.add(
-                ContentVersion(
-                    content_item_id=item.id,
-                    version_number=1,
-                    body="For God so loved the world, that he gave his only Son...",
-                    change_note="Initial placeholder draft",
+            items = [
+                ("God So Loved the World", "John 3:16-17", "study_note", "in_review"),
+                ("Faith and Works", "James 2:14-26", "study_note", "in_progress"),
+                ("Morning by Morning", "Psalm 30:5", "devotional", "qa"),
+                ("Grace in Action", "Ephesians 2:8-10", "study_note", "ready"),
+                ("The Shepherd's Psalm", "Psalm 23", "devotional", "assigned"),
+                ("Light of the World", "John 8:12", "reference_entry", "archived"),
+            ]
+            for title, passage, content_type, status in items:
+                item = ContentItem(
+                    project_id=project.id,
+                    title=title,
+                    passage=passage,
+                    content_type=content_type,
+                    status=status,
                 )
-            )
-            print(f"Created sample content item: {item.title}")
+                db.add(item)
+                db.flush()
+                db.add(
+                    ContentVersion(
+                        content_item_id=item.id,
+                        version_number=1,
+                        body=f"{title} — initial draft for the sample project.",
+                        change_note="Initial placeholder draft",
+                    )
+                )
+            print(f"Created sample content items: {len(items)}")
 
         db.commit()
 

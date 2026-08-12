@@ -44,6 +44,7 @@ vi.mock("../api", () => ({
     versions: vi.fn().mockResolvedValue([mocks.version]),
     addVersion: vi.fn().mockResolvedValue(mocks.savedVersion),
     comments: vi.fn().mockResolvedValue([]),
+    history: vi.fn().mockResolvedValue([]),
     addComment: vi.fn(),
     generateDraft: vi.fn(),
     review: vi.fn(),

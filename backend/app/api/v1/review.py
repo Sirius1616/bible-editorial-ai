@@ -1,17 +1,92 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.api.v1.projects import get_owned_project
 from app.db.session import get_db
-from app.models.content import ContentItem
+from app.models.content import ContentItem, StatusHistory
 from app.models.user import User
-from app.schemas.content import ContentItemOut
+from app.schemas.content import ContentItemOut, StatusHistoryOut, TransitionIn
 
-router = APIRouter(prefix="/projects/{project_id}/items/{item_id}/review", tags=["review"])
+router = APIRouter(prefix="/projects/{project_id}/items/{item_id}", tags=["workflow"])
+
+ALLOWED_TRANSITIONS: dict[str, set[str]] = {
+    "assigned": {"in_progress", "archived"},
+    "in_progress": {"assigned", "in_review", "archived"},
+    "in_review": {"in_progress", "qa", "ready", "archived"},
+    "qa": {"in_review", "ready", "archived"},
+    "ready": {"in_review", "archived"},
+    "archived": {"assigned"},
+}
 
 
-@router.post("", response_model=ContentItemOut)
+def get_owned_item(project_id: int, item_id: int, user: User, db: Session) -> ContentItem:
+    get_owned_project(project_id, user, db)
+    item = db.get(ContentItem, item_id)
+    if item is None or item.project_id != project_id:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    return item
+
+
+def apply_transition(
+    item: ContentItem,
+    to_status: str,
+    user: User,
+    db: Session,
+    note: str | None = None,
+    force: bool = False,
+) -> ContentItem:
+    if not force and to_status not in ALLOWED_TRANSITIONS.get(item.status, set()):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot move item from '{item.status}' to '{to_status}'",
+        )
+    db.add(
+        StatusHistory(
+            content_item_id=item.id,
+            from_status=item.status,
+            to_status=to_status,
+            note=note,
+            changed_by=user.id,
+        )
+    )
+    item.status = to_status
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@router.post("/transition", response_model=ContentItemOut)
+def transition_item(
+    project_id: int,
+    item_id: int,
+    payload: TransitionIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ContentItem:
+    item = get_owned_item(project_id, item_id, user, db)
+    return apply_transition(item, payload.status, user, db, payload.note)
+
+
+@router.get("/history", response_model=list[StatusHistoryOut])
+def list_status_history(
+    project_id: int,
+    item_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[StatusHistory]:
+    get_owned_item(project_id, item_id, user, db)
+    return list(
+        db.scalars(
+            select(StatusHistory)
+            .where(StatusHistory.content_item_id == item_id)
+            .order_by(StatusHistory.created_at)
+        )
+    )
+
+
+@router.post("/review", response_model=ContentItemOut)
 def review_item(
     project_id: int,
     item_id: int,
@@ -19,16 +94,17 @@ def review_item(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ContentItem:
-    project = get_owned_project(project_id, user, db)
-    item = db.get(ContentItem, item_id)
-    if item is None or item.project_id != project.id:
-        raise HTTPException(status_code=404, detail="Content item not found")
-
+    item = get_owned_item(project_id, item_id, user, db)
     action = payload.get("action")
     if action not in {"approve", "reject"}:
         raise HTTPException(status_code=400, detail="action must be 'approve' or 'reject'")
 
-    item.status = "approved" if action == "approve" else "rejected"
-    db.commit()
-    db.refresh(item)
-    return item
+    to_status = "ready" if action == "approve" else "archived"
+    return apply_transition(
+        item,
+        to_status,
+        user,
+        db,
+        note="approved" if action == "approve" else "rejected",
+        force=True,
+    )

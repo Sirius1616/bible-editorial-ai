@@ -28,6 +28,12 @@ export const itemsApi = {
     api(`/projects/${projectId}/items/${itemId}/draft`, { method: "POST" }),
   review: (projectId, itemId, action) =>
     api(`/projects/${projectId}/items/${itemId}/review`, { method: "POST", body: { action } }),
+  transition: (projectId, itemId, status, note) =>
+    api(`/projects/${projectId}/items/${itemId}/transition`, {
+      method: "POST",
+      body: { status, note },
+    }),
+  history: (projectId, itemId) => api(`/projects/${projectId}/items/${itemId}/history`),
   exportItem: async (projectId, itemId) => {
     const res = await api(`/projects/${projectId}/items/${itemId}/export`, { raw: true });
     return res.blob();

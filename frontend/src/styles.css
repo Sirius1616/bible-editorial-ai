@@ -504,6 +504,11 @@ label {
   color: var(--danger);
 }
 
+.badge-qa {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
 .badge-neutral {
   background: var(--primary-soft);
   color: var(--primary);
@@ -828,6 +833,22 @@ table.items-table {
   display: flex;
   gap: 0.55rem;
   flex-shrink: 0;
+}
+
+.transition-form {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.transition-form select {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
 }
 
 .passage-ref {

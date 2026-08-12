@@ -13,13 +13,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import { itemsApi, projectsApi } from "../api";
-
-const STATUS_LABELS = { draft: "In review", approved: "Approved", rejected: "Rejected" };
-const STATUS_ORDER = { draft: 0, approved: 1, rejected: 2 };
+import { STATUS_BADGE, STATUS_LABELS, STATUS_ORDER } from "../workflow";
 
 function StatusBadge({ status }) {
-  const cls = { draft: "badge-draft", approved: "badge-approved", rejected: "badge-rejected" }[status];
-  return <span className={`badge ${cls}`}>{STATUS_LABELS[status] ?? status}</span>;
+  return <span className={`badge ${STATUS_BADGE[status] ?? "badge-neutral"}`}>{STATUS_LABELS[status] ?? status}</span>;
 }
 
 function typeIcon(type) {
@@ -89,7 +86,7 @@ export default function ProjectDetail() {
   }, [items, filter, query]);
 
   const counts = useMemo(() => {
-    const c = { all: items.length, draft: 0, approved: 0, rejected: 0 };
+    const c = { all: items.length, assigned: 0, in_progress: 0, in_review: 0, qa: 0, ready: 0, archived: 0 };
     for (const i of items) c[i.status] += 1;
     return c;
   }, [items]);
@@ -221,8 +218,8 @@ export default function ProjectDetail() {
             <FileText size={20} />
           </span>
           <div>
-            <div className="stat-value">{counts.draft}</div>
-            <div className="stat-label">In review</div>
+            <div className="stat-value">{counts.in_review + counts.qa + counts.in_progress + counts.assigned}</div>
+            <div className="stat-label">Active</div>
           </div>
         </div>
         <div className="stat-card">
@@ -230,8 +227,8 @@ export default function ProjectDetail() {
             <CheckCircle2 size={20} />
           </span>
           <div>
-            <div className="stat-value">{counts.approved}</div>
-            <div className="stat-label">Approved</div>
+            <div className="stat-value">{counts.ready}</div>
+            <div className="stat-label">Ready</div>
           </div>
         </div>
         <div className="stat-card">
@@ -239,8 +236,8 @@ export default function ProjectDetail() {
             <XCircle size={20} />
           </span>
           <div>
-            <div className="stat-value">{counts.rejected}</div>
-            <div className="stat-label">Rejected</div>
+            <div className="stat-value">{counts.archived}</div>
+            <div className="stat-label">Archived</div>
           </div>
         </div>
       </div>
@@ -249,9 +246,12 @@ export default function ProjectDetail() {
         <div className="filter-tabs">
           {[
             ["all", `All (${counts.all})`],
-            ["draft", `In review (${counts.draft})`],
-            ["approved", `Approved (${counts.approved})`],
-            ["rejected", `Rejected (${counts.rejected})`],
+            ["assigned", `Assigned (${counts.assigned})`],
+            ["in_progress", `In progress (${counts.in_progress})`],
+            ["in_review", `In review (${counts.in_review})`],
+            ["qa", `QA (${counts.qa})`],
+            ["ready", `Ready (${counts.ready})`],
+            ["archived", `Archived (${counts.archived})`],
           ].map(([key, label]) => (
             <button
               key={key}

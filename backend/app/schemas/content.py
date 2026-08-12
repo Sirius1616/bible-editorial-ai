@@ -7,12 +7,14 @@ class ContentItemCreate(BaseModel):
     title: str
     passage: str = ""
     content_type: str = "study_note"
+    due_date: datetime | None = None
 
 
 class ContentItemUpdate(BaseModel):
     title: str | None = None
     passage: str | None = None
     content_type: str | None = None
+    due_date: datetime | None = None
 
 
 class ContentItemOut(BaseModel):
@@ -24,6 +26,7 @@ class ContentItemOut(BaseModel):
     passage: str | None
     content_type: str
     status: str
+    due_date: datetime | None
     created_at: datetime
     updated_at: datetime
 
@@ -50,4 +53,21 @@ class CommentOut(BaseModel):
     content_item_id: int
     author_id: int | None
     body: str
+    created_at: datetime
+
+
+class TransitionIn(BaseModel):
+    status: str
+    note: str | None = None
+
+
+class StatusHistoryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    content_item_id: int
+    from_status: str
+    to_status: str
+    note: str | None
+    changed_by: int | None
     created_at: datetime

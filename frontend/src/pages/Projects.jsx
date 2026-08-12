@@ -14,10 +14,10 @@ import { itemsApi, projectsApi } from "../api";
 
 function ProjectCard({ project, items, onOpen }) {
   const total = items.length;
-  const approved = items.filter((i) => i.status === "approved").length;
-  const rejected = items.filter((i) => i.status === "rejected").length;
-  const inReview = total - approved - rejected;
-  const pct = total ? Math.round((approved / total) * 100) : 0;
+  const ready = items.filter((i) => i.status === "ready").length;
+  const archived = items.filter((i) => i.status === "archived").length;
+  const active = total - ready - archived;
+  const pct = total ? Math.round((ready / total) * 100) : 0;
 
   return (
     <div className="project-card" onClick={() => onOpen(project.id)}>
@@ -32,10 +32,10 @@ function ProjectCard({ project, items, onOpen }) {
           <FileText size={14} /> {total} items
         </span>
         <span className="row" style={{ gap: "0.3rem" }}>
-          <CheckCircle2 size={14} /> {approved} approved
+          <CheckCircle2 size={14} /> {ready} ready
         </span>
         <span className="row" style={{ gap: "0.3rem" }}>
-          <XCircle size={14} /> {rejected} rejected
+          <XCircle size={14} /> {archived} archived
         </span>
       </div>
 
@@ -45,9 +45,9 @@ function ProjectCard({ project, items, onOpen }) {
             <div className="progress-fill" style={{ width: `${pct}%` }} />
           </div>
           <div className="project-card-meta" style={{ justifyContent: "space-between" }}>
-            <span>{inReview} in review</span>
+            <span>{active} active</span>
             <span style={{ fontWeight: 600, color: pct === 100 ? "var(--success)" : undefined }}>
-              {pct}% approved
+              {pct}% ready
             </span>
           </div>
         </>
@@ -114,9 +114,9 @@ export default function Projects() {
   const allItems = Object.values(itemsByProject).flat();
   const stats = {
     items: allItems.length,
-    approved: allItems.filter((i) => i.status === "approved").length,
-    rejected: allItems.filter((i) => i.status === "rejected").length,
-    review: allItems.filter((i) => i.status === "draft").length,
+    active: allItems.filter((i) => !["ready", "archived"].includes(i.status)).length,
+    ready: allItems.filter((i) => i.status === "ready").length,
+    archived: allItems.filter((i) => i.status === "archived").length,
   };
 
   return (
@@ -215,8 +215,8 @@ export default function Projects() {
               <FileText size={20} />
             </span>
             <div>
-              <div className="stat-value">{stats.review}</div>
-              <div className="stat-label">In review</div>
+              <div className="stat-value">{stats.active}</div>
+              <div className="stat-label">Active</div>
             </div>
           </div>
           <div className="stat-card">
@@ -224,8 +224,8 @@ export default function Projects() {
               <CheckCircle2 size={20} />
             </span>
             <div>
-              <div className="stat-value">{stats.approved}</div>
-              <div className="stat-label">Approved</div>
+              <div className="stat-value">{stats.ready}</div>
+              <div className="stat-label">Ready</div>
             </div>
           </div>
           <div className="stat-card">
@@ -233,8 +233,8 @@ export default function Projects() {
               <XCircle size={20} />
             </span>
             <div>
-              <div className="stat-value">{stats.rejected}</div>
-              <div className="stat-label">Rejected</div>
+              <div className="stat-value">{stats.archived}</div>
+              <div className="stat-label">Archived</div>
             </div>
           </div>
         </div>

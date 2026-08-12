@@ -10,18 +10,19 @@ import {
   Save,
   Send,
   Sparkles,
-  XCircle,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import { itemsApi, projectsApi } from "../api";
-
-const STATUS_LABELS = { draft: "In review", approved: "Approved", rejected: "Rejected" };
+import { ALLOWED_TRANSITIONS, STATUS_BADGE, STATUS_LABELS } from "../workflow";
 
 function StatusBadge({ status }) {
-  const cls = { draft: "badge-draft", approved: "badge-approved", rejected: "badge-rejected" }[status];
-  return <span className={`badge ${cls}`}>{STATUS_LABELS[status] ?? status}</span>;
+  return (
+    <span className={`badge ${STATUS_BADGE[status] ?? "badge-neutral"}`}>
+      {STATUS_LABELS[status] ?? status}
+    </span>
+  );
 }
 
 function formatDate(iso) {
@@ -39,10 +40,13 @@ export default function Editor() {
   const [item, setItem] = useState(null);
   const [versions, setVersions] = useState([]);
   const [comments, setComments] = useState([]);
+  const [history, setHistory] = useState([]);
   const [selected, setSelected] = useState(null);
   const [body, setBody] = useState("");
   const [changeNote, setChangeNote] = useState("");
   const [commentBody, setCommentBody] = useState("");
+  const [nextStatus, setNextStatus] = useState("");
+  const [transitioning, setTransitioning] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(true);
@@ -54,16 +58,19 @@ export default function Editor() {
   async function load() {
     setError("");
     try {
-      const [p, item, v, c] = await Promise.all([
+      const [p, item, v, c, h] = await Promise.all([
         projectsApi.get(projectId),
         itemsApi.get(projectId, itemId),
         itemsApi.versions(projectId, itemId),
         itemsApi.comments(projectId, itemId),
+        itemsApi.history(projectId, itemId),
       ]);
       setProject(p);
       setItem(item);
       setVersions(v);
       setComments(c);
+      setHistory(h);
+      setNextStatus((ALLOWED_TRANSITIONS[item.status] ?? [])[0] ?? "");
       const latest = v[v.length - 1];
       if (latest) {
         setSelected(latest);
@@ -127,15 +134,21 @@ export default function Editor() {
     }
   }
 
-  async function review(action) {
+  async function transitionTo(e) {
+    e?.preventDefault();
+    if (!nextStatus) return;
+    setTransitioning(true);
     setError("");
     setInfo("");
     try {
-      const updated = await itemsApi.review(projectId, itemId, action);
+      const updated = await itemsApi.transition(projectId, itemId, nextStatus);
       setItem((prev) => ({ ...prev, status: updated.status }));
-      setInfo(action === "approve" ? "Item approved for production." : "Item rejected.");
+      setInfo(`Item moved to ${STATUS_LABELS[updated.status] ?? updated.status}.`);
+      await load();
     } catch (err) {
       setError(err.message);
+    } finally {
+      setTransitioning(false);
     }
   }
 
@@ -222,21 +235,39 @@ export default function Editor() {
             <span className="muted" style={{ marginLeft: "0.75rem" }}>
               v{versions.length} · updated {formatDate(item.updated_at)}
             </span>
+            {item.due_date && (
+              <span className="muted" style={{ marginLeft: "0.75rem" }}>
+                Due {formatDate(item.due_date)}
+              </span>
+            )}
           </p>
         </div>
         <div className="actions">
           <button onClick={exportMarkdown} title="Export Markdown">
             <Download size={16} /> Export
           </button>
-          {item.status !== "approved" && (
-            <button className="danger" onClick={() => review("reject")}>
-              <XCircle size={16} /> Reject
-            </button>
-          )}
-          {item.status !== "approved" && (
-            <button className="primary" onClick={() => review("approve")}>
-              <CheckCircle2 size={16} /> Approve
-            </button>
+          {(ALLOWED_TRANSITIONS[item.status] ?? []).length > 0 && (
+            <form className="transition-form" onSubmit={transitionTo}>
+              <select
+                value={nextStatus}
+                onChange={(e) => setNextStatus(e.target.value)}
+                title="Move item to next workflow state"
+              >
+                {(ALLOWED_TRANSITIONS[item.status] ?? []).map((s) => (
+                  <option key={s} value={s}>
+                    Move to {STATUS_LABELS[s] ?? s}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className={nextStatus === "ready" ? "primary" : undefined}
+                disabled={transitioning || !nextStatus}
+              >
+                {transitioning ? <Loader2 size={16} className="spinner" /> : <CheckCircle2 size={16} />}
+                Apply
+              </button>
+            </form>
           )}
         </div>
       </div>
@@ -315,6 +346,36 @@ export default function Editor() {
                       <span className="version-date">{formatDate(v.created_at)}</span>
                     </div>
                     <div className="version-note">{v.change_note || "No note"}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="editor-panel">
+            <div className="panel-title">
+              <h2>
+                <History size={15} /> Status history
+              </h2>
+              <span className="badge badge-neutral">{history.length}</span>
+            </div>
+            {history.length === 0 ? (
+              <p className="muted" style={{ fontSize: "0.85rem" }}>
+                No status changes yet. Move the item through the workflow to track it here.
+              </p>
+            ) : (
+              <div>
+                {[...history].reverse().map((h) => (
+                  <div key={h.id} className="version-item">
+                    <div className="version-meta">
+                      <span className="version-no">
+                        {STATUS_LABELS[h.from_status] ?? h.from_status}
+                        <span className="muted"> → </span>
+                        {STATUS_LABELS[h.to_status] ?? h.to_status}
+                      </span>
+                      <span className="version-date">{formatDate(h.created_at)}</span>
+                    </div>
+                    {h.note && <div className="version-note">{h.note}</div>}
                   </div>
                 ))}
               </div>
