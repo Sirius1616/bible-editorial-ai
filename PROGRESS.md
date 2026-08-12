@@ -22,7 +22,9 @@ Stack: FastAPI + PostgreSQL + React (Vite) + n8n, with AI draft generation.
 ### Phase 2 — Core API ✅
 - `Projects` CRUD (owner-scoped)
 - `ContentItems` create/list/get/update/delete, versions + comments
-- `Drafts` — AI generation endpoint (`POST .../draft`) → stored as a new `ContentVersion`
+- `Drafts` — AI generation endpoint (`POST .../draft`) → stored as a new `ContentVersion`;
+  improved prompt (content-type tone, translation, style guide), graceful upstream errors,
+  offline demo-mode mock when `OPENAI_API_KEY` is unset
 - `Review` — approve/reject flow
 - `Export` — Markdown + `.docx` download (`?format=md|docx`)
 - 8 passing backend tests (auth, health, project CRUD + item/review/export/comment happy path)
@@ -52,7 +54,7 @@ Stack: FastAPI + PostgreSQL + React (Vite) + n8n, with AI draft generation.
 | 1 | Docker: auto-run migrations on backend start (`alembic upgrade head` before uvicorn) | ✅ done (issue #15) |
 | 2 | Verify full stack with `docker compose up` (PG + backend + frontend together) | ✅ done (issue #16) |
 | 3 | `.docx` export (currently Markdown only) | ✅ done (issue #17) |
-| 4 | Add `OPENAI_API_KEY` to `.env` to enable the AI draft endpoint (returns 503 without it) | 🔶 needs env var |
+| 4 | Add `OPENAI_API_KEY` to `.env` to enable the AI draft endpoint | ✅ done (issue #18) |
 | 5 | Frontend tests / lint pass | ⬜ optional |
 | 6 | Record demo video + screenshots for the Upwork pitch to Bible publishers | ⬜ user action |
 | 7 | (Post-MVP) n8n workflows, QA checker against translations, InDesign export | ⬜ deferred |
@@ -71,7 +73,7 @@ in parallel internally; phases run in order because later phases depend on earli
 | #17 | Backend: .docx export | export endpoint (done) ✅ |
 | #19 | Frontend: lint + tests | — (fully parallel) |
 | #16 | Verify full stack with `docker compose up` | ✅ done |
-| #18 | Enable + validate AI drafts (OPENAI_API_KEY) | draft endpoint (done) |
+| #18 | Enable + validate AI drafts (OPENAI_API_KEY) | draft endpoint (done) ✅ |
 | #41 | Demo video + screenshots for Upwork pitch | everything in P1 |
 
 ### Phase 2 — Editorial core (`priority:p2`)
@@ -142,6 +144,7 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `e07c98c` Enable + validate AI drafts: tuned prompt, graceful errors, demo-mode mock (#18)
 - `403c8c2` Backend: .docx export (format=md|docx) (#17)
 - `ae4f72b` Polish frontend: professional design system, dashboard stats, item table, editor workspace
 - `9a4e413` Build frontend: auth-guarded routes, projects, item editor, versions, comments, review
