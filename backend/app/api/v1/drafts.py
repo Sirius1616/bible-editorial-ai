@@ -27,11 +27,12 @@ async def create_draft(
         raise HTTPException(status_code=404, detail="Content item not found")
 
     try:
-        body = await generate_draft(
+        body, demo = await generate_draft(
             passage=item.passage or "",
             title=item.title,
             content_type=item.content_type,
             style_guide=project.style_guide or "",
+            translation=project.translation or "",
         )
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc))
@@ -46,7 +47,7 @@ async def create_draft(
         content_item_id=item.id,
         version_number=next_number,
         body=body,
-        change_note="AI-generated draft",
+        change_note="AI-generated draft (demo mode)" if demo else "AI-generated draft",
         created_by=user.id,
     )
     db.add(version)
