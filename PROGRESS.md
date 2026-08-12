@@ -156,6 +156,7 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `e1d6e5d` Version diffing: compare any two versions (word/line level) (#32)
 - `11f1521` Verse-level anchoring, footnotes & cross-references (#30)
 - `aa8fbb0` Editorial workflow states: transitions, history, due dates (#20)
 - `8e502e8` Frontend: lint + Vitest UI tests (auth guard, projects, editor) (#19)
