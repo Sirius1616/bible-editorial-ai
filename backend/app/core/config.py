@@ -8,9 +8,10 @@ class Settings(BaseSettings):
 
     APP_NAME: str = "Bible Editorial AI"
     ENVIRONMENT: str = "development"
-    SECRET_KEY: str = "change-me-in-production"
+    SECRET_KEY: str = "change-me-in-production-change-me-in-production-1234"
     DATABASE_URL: str = "postgresql+psycopg://editorial:editorial@localhost:5432/editorial"
     OPENAI_API_KEY: str = ""
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
 
     CORS_ORIGINS: str = "http://localhost:3000"
 
