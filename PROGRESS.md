@@ -142,6 +142,7 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `403c8c2` Backend: .docx export (format=md|docx) (#17)
 - `ae4f72b` Polish frontend: professional design system, dashboard stats, item table, editor workspace
 - `9a4e413` Build frontend: auth-guarded routes, projects, item editor, versions, comments, review
 - `55005cd` Add core MVP backend: models, auth, projects, content, drafts, review, exports
