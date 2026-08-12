@@ -7,9 +7,14 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-editorial}
       POSTGRES_DB: ${POSTGRES_DB:-editorial}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-editorial} -d ${POSTGRES_DB:-editorial}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build:
@@ -17,20 +22,23 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://editorial:editorial@db:5432/editorial}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-editorial}:${POSTGRES_PASSWORD:-editorial}@db:5432/${POSTGRES_DB:-editorial}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
 
   frontend:
     build:
       context: ./frontend
     restart: unless-stopped
+    environment:
+      VITE_PROXY_TARGET: http://backend:8000
     depends_on:
       - backend
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
 
   n8n:
     image: n8nio/n8n
@@ -42,7 +50,7 @@ services:
       - N8N_HOST=localhost
       - N8N_PORT=5678
     ports:
-      - "5678:5678"
+      - "${N8N_PORT:-5678}:5678"
     volumes:
       - n8ndata:/home/node/.n8n
       - ./n8n/workflows:/home/node/workflows

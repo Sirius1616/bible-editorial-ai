@@ -50,7 +50,7 @@ Stack: FastAPI + PostgreSQL + React (Vite) + n8n, with AI draft generation.
 | # | Task | Status |
 |---|------|--------|
 | 1 | Docker: auto-run migrations on backend start (`alembic upgrade head` before uvicorn) | ✅ done (issue #15) |
-| 2 | Verify full stack with `docker compose up` (PG + backend + frontend together) | 🔶 not done |
+| 2 | Verify full stack with `docker compose up` (PG + backend + frontend together) | ✅ done (issue #16) |
 | 3 | `.docx` export (currently Markdown only) | 🔶 not done |
 | 4 | Add `OPENAI_API_KEY` to `.env` to enable the AI draft endpoint (returns 503 without it) | 🔶 needs env var |
 | 5 | Frontend tests / lint pass | ⬜ optional |
@@ -70,7 +70,7 @@ in parallel internally; phases run in order because later phases depend on earli
 | #15 | Docker: auto-run migrations on backend start | ✅ done |
 | #17 | Backend: .docx export | export endpoint (done) |
 | #19 | Frontend: lint + tests | — (fully parallel) |
-| #16 | Verify full stack with `docker compose up` | #15 |
+| #16 | Verify full stack with `docker compose up` | ✅ done |
 | #18 | Enable + validate AI drafts (OPENAI_API_KEY) | draft endpoint (done) |
 | #41 | Demo video + screenshots for Upwork pitch | everything in P1 |
 
