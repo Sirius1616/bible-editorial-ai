@@ -176,7 +176,7 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
-- `…` AI style-guide adherence checking: style-check endpoint (score + issues), demo rules, editor button/panel/inline highlights (#24)
+- `1b350dc` AI style-guide adherence checking: style-check endpoint (score + issues), demo rules, editor button/panel/inline highlights (#24)
 - `380af69` Inline / verse-level comments: comment-UI Vitest tests (6) + jsdom scrollIntoView stub, live smoke verified (#31)
 - `95570ba` Inline / verse-level comments: backend anchors/threads/resolve + frontend composer/markers (#31, WIP)
 - `b7bfe86` docs: record #31 commit hash in PROGRESS.md
