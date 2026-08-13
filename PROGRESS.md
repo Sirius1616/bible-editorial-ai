@@ -168,7 +168,7 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
-- `…` Inline / verse-level comments: comment-UI Vitest tests (6) + jsdom scrollIntoView stub, live smoke verified (#31)
+- `380af69` Inline / verse-level comments: comment-UI Vitest tests (6) + jsdom scrollIntoView stub, live smoke verified (#31)
 - `95570ba` Inline / verse-level comments: backend anchors/threads/resolve + frontend composer/markers (#31, WIP)
 - `e1d6e5d` Version diffing: compare any two versions (word/line level) (#32)
 - `11f1521` Verse-level anchoring, footnotes & cross-references (#30)
