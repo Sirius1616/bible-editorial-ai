@@ -34,6 +34,11 @@ export const itemsApi = {
     api(`/projects/${projectId}/items/${itemId}/comments/${commentId}`, { method: "PATCH", body }),
   generateDraft: (projectId, itemId) =>
     api(`/projects/${projectId}/items/${itemId}/draft`, { method: "POST" }),
+  styleCheck: (projectId, itemId, body) =>
+    api(`/projects/${projectId}/items/${itemId}/style-check`, {
+      method: "POST",
+      body: { body },
+    }),
   review: (projectId, itemId, action) =>
     api(`/projects/${projectId}/items/${itemId}/review`, { method: "POST", body: { action } }),
   transition: (projectId, itemId, status, note) =>

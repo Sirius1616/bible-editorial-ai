@@ -1082,6 +1082,66 @@ table.items-table {
   border-bottom-color: var(--accent);
 }
 
+.style-mark {
+  border-bottom: 2px solid;
+  border-radius: 2px;
+  padding: 0 0.1em;
+}
+
+.style-mark.severity-high {
+  background: rgba(231, 76, 60, 0.25);
+  border-bottom-color: var(--danger, #e74c3c);
+}
+
+.style-mark.severity-medium {
+  background: rgba(241, 196, 15, 0.3);
+  border-bottom-color: #f1c40f;
+}
+
+.style-mark.severity-low {
+  background: rgba(52, 152, 219, 0.2);
+  border-bottom-color: var(--accent);
+}
+
+.style-issue {
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.7rem;
+  margin-bottom: 0.5rem;
+  background: var(--surface-2);
+}
+
+.style-issue.severity-high {
+  border-left-color: var(--danger, #e74c3c);
+}
+
+.style-issue.severity-medium {
+  border-left-color: #f1c40f;
+}
+
+.style-issue.severity-low {
+  border-left-color: var(--accent);
+}
+
+.style-issue-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.style-issue-snippet {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.style-issue-reason {
+  font-size: 0.82rem;
+  margin: 0;
+}
+
 .comment-composer {
   margin-top: 0.9rem;
   border-top: 1px solid var(--border);

@@ -1,3 +1,6 @@
+import json
+import re
+
 import httpx
 
 from app.core.config import settings
@@ -105,3 +108,135 @@ async def generate_draft(
         raise RuntimeError("Could not reach OpenAI. Check your network connection.") from exc
 
     return data["choices"][0]["message"]["content"].strip(), False
+
+
+STYLE_RULES: list[tuple[str, str, int, str]] = [
+    (
+        r"\bI(?:'m|'ll|'ve)?\b|\bme\b|\bmy\b|\bmine\b",
+        "Avoid first-person voice; keep the tone objective and centered on the text.",
+        15,
+        "high",
+    ),
+    (
+        r"\b(very|really|extremely|quite|totally|absolutely)\b",
+        "Weak intensifier — prefer a precise word instead of 'very/really/quite'.",
+        8,
+        "medium",
+    ),
+    (
+        r"\bin order to\b",
+        "Wordy — 'in order to' can usually be trimmed to 'to'.",
+        4,
+        "low",
+    ),
+    (
+        r"\bdue to the fact that\b",
+        "Wordy — replace with 'because'.",
+        4,
+        "low",
+    ),
+    (
+        r"\b(TODO|lorem|PLACEHOLDER|insert text here)\b",
+        "Placeholder text left in the draft.",
+        15,
+        "high",
+    ),
+]
+
+
+def _find_snippet(body: str, pattern: str) -> str | None:
+    match = re.search(pattern, body, flags=re.IGNORECASE)
+    if match is None:
+        return None
+    start = max(0, match.start() - 15)
+    end = min(len(body), match.end() + 25)
+    return body[start:end].strip()
+
+
+def build_style_check_prompt(body: str, style_guide: str) -> str:
+    return (
+        "You are an editorial style reviewer for a Christian publishing house. "
+        "Review the provided manuscript against the project style guide and return "
+        "strict JSON only, no prose, in this shape:\n"
+        '{"score": <integer 0-100>, "issues": [{"snippet": <short exact phrase from the text>, '
+        '"reason": <what violates the style guide and why>, "severity": <"high"|"medium"|"low">}]}\n'
+        "Only flag clear violations, with a concrete reason tied to the style guide.\n\n"
+        f"Style guide:\n{style_guide or '(none provided — use general editorial best practice)'}\n\n"
+        f"Manuscript:\n{body}\n"
+    )
+
+
+def build_mock_style_issues(body: str, style_guide: str) -> dict:
+    issues = []
+    for pattern, reason, weight, severity in STYLE_RULES:
+        snippet = _find_snippet(body, pattern)
+        if snippet:
+            issues.append(
+                {"snippet": snippet, "reason": reason, "severity": severity}
+            )
+    if "!" in body and style_guide and "exclam" not in style_guide.lower():
+        idx = body.find("!")
+        issues.append(
+            {
+                "snippet": body[max(0, idx - 30) : min(len(body), idx + 1)].strip(),
+                "reason": "Exclamation point in editorial prose; keep the tone measured.",
+                "severity": "medium",
+            }
+        )
+    score = max(0, 100 - sum(weight for pattern, _, weight, _ in STYLE_RULES if _find_snippet(body, pattern)))
+    if "!" in body and style_guide and "exclam" not in style_guide.lower():
+        score = max(0, score - 8)
+    return {"score": score, "issues": issues}
+
+
+async def check_style_guide(
+    body: str, style_guide: str = ""
+) -> tuple[dict, bool]:
+    if not settings.OPENAI_API_KEY:
+        return build_mock_style_issues(body, style_guide), True
+
+    prompt = build_style_check_prompt(body, style_guide)
+
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            response = await client.post(
+                OPENAI_CHAT_URL,
+                headers={"Authorization": f"Bearer {settings.OPENAI_API_KEY}"},
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "response_format": {"type": "json_object"},
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+    except httpx.HTTPStatusError as exc:
+        status_code = exc.response.status_code
+        if status_code == 401:
+            raise RuntimeError(
+                "OpenAI rejected the API key (401). Check OPENAI_API_KEY."
+            ) from exc
+        if status_code == 429:
+            raise RuntimeError(
+                "OpenAI rate limit reached (429). Try again in a moment."
+            ) from exc
+        raise RuntimeError(
+            f"OpenAI returned an error ({status_code}). Try again later."
+        ) from exc
+    except httpx.RequestError as exc:
+        raise RuntimeError("Could not reach OpenAI. Check your network connection.") from exc
+
+    content = data["choices"][0]["message"]["content"].strip()
+    try:
+        parsed = json.loads(content)
+    except json.JSONDecodeError as exc:
+        start = content.find("{")
+        end = content.rfind("}")
+        if start == -1 or end <= start:
+            raise RuntimeError(
+                "OpenAI returned an unparsable style-check response. Try again."
+            ) from exc
+        parsed = json.loads(content[start : end + 1])
+    issues = parsed.get("issues", []) if isinstance(parsed, dict) else []
+    score = int(parsed.get("score", 100)) if isinstance(parsed, dict) else 100
+    return {"score": max(0, min(100, score)), "issues": issues}, False

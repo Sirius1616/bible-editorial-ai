@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-13 — #31 (inline/verse comments) closed; frontend comment-UI tests + live smoke verified.
+> **Updated:** 2026-08-14 — #24 (AI style-guide adherence checking) done; #31 closed earlier.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -111,10 +111,18 @@ in parallel internally; phases run in order because later phases depend on earli
 ### Phase 3 — AI intelligence (`priority:p3`)
 | # | Issue | Builds on |
 |---|-------|-----------|
-| #24 | AI: style-guide adherence checking | AI pattern from #18 |
+| #24 | AI: style-guide adherence checking | AI pattern from #18 — ✅ done |
 | #27 | AI: translation comparison sidebar | #30 verse anchoring |
 | #25 | AI: Scripture QA (verse-quote verification) | #30 + #27 |
 | #26 | AI: cross-reference & terminology consistency | #30 |
+
+- ✅ #24 Style-guide adherence checking: `POST .../items/{id}/style-check` (optional `body`,
+  defaults to latest version) → score 0-100 + issues (snippet/reason/severity). AI mode returns
+  strict JSON via OpenAI; demo mode uses rule-based mock (first-person, intensifiers, wordiness,
+  placeholders, exclamations). Frontend: "Style check" button in the editor, score badge + issue
+  cards panel, inline `<mark>` highlights with severity colors and a toggle. 5 backend tests + 2
+  Vitest tests (29 pytest / 14 frontend passing), lint 0 errors, build clean, live Playwright
+  smoke verified (score 69/100, 3 flagged issues, 2 inline marks).
 
 ### Phase 4 — Team & workspace (`priority:p4`)
 | # | Issue | Builds on |
@@ -168,8 +176,10 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `…` AI style-guide adherence checking: style-check endpoint (score + issues), demo rules, editor button/panel/inline highlights (#24)
 - `380af69` Inline / verse-level comments: comment-UI Vitest tests (6) + jsdom scrollIntoView stub, live smoke verified (#31)
 - `95570ba` Inline / verse-level comments: backend anchors/threads/resolve + frontend composer/markers (#31, WIP)
+- `b7bfe86` docs: record #31 commit hash in PROGRESS.md
 - `e1d6e5d` Version diffing: compare any two versions (word/line level) (#32)
 - `11f1521` Verse-level anchoring, footnotes & cross-references (#30)
 - `aa8fbb0` Editorial workflow states: transitions, history, due dates (#20)

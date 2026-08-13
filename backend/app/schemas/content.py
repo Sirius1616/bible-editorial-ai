@@ -77,6 +77,22 @@ class CommentCreate(BaseModel):
     anchor_text: str | None = None
 
 
+class StyleCheckIn(BaseModel):
+    body: str | None = None
+
+
+class StyleIssue(BaseModel):
+    snippet: str
+    reason: str
+    severity: str = "medium"
+
+
+class StyleCheckOut(BaseModel):
+    score: int
+    issues: list[StyleIssue]
+    demo: bool
+
+
 class CommentUpdate(BaseModel):
     body: str | None = None
     resolved: bool | None = None

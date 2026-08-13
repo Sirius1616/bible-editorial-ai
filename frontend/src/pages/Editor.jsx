@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Download,
   FileText,
+  Gauge,
   GitCompare,
   History,
   Loader2,
@@ -67,6 +68,28 @@ function buildAnnotatedParts(body, comments) {
     if (s > cursor) parts.push({ key: `p${cursor}`, text: body.slice(cursor, s) });
     if (e > s) parts.push({ key: `c${a.id}`, commentId: a.id, text: body.slice(s, e) });
     cursor = e;
+  }
+  if (cursor < body.length) parts.push({ key: `p${cursor}`, text: body.slice(cursor) });
+  return parts;
+}
+
+function buildStyleParts(body, issues) {
+  const spans = issues
+    .map((issue) => {
+      const start = body.indexOf(issue.snippet);
+      return { start, end: start + issue.snippet.length, severity: issue.severity };
+    })
+    .filter((s) => s.start !== -1);
+  if (!spans.length) return null;
+  spans.sort((a, b) => a.start - b.start);
+  const parts = [];
+  let cursor = 0;
+  for (const s of spans) {
+    const start = Math.min(Math.max(s.start, cursor), body.length);
+    const end = Math.min(Math.max(s.end, start), body.length);
+    if (start > cursor) parts.push({ key: `p${cursor}`, text: body.slice(cursor, start) });
+    if (end > start) parts.push({ key: `s${start}`, text: body.slice(start, end), severity: s.severity });
+    cursor = end;
   }
   if (cursor < body.length) parts.push({ key: `p${cursor}`, text: body.slice(cursor) });
   return parts;
@@ -161,6 +184,9 @@ export default function Editor() {
   const [replyTo, setReplyTo] = useState(null);
   const [replyBody, setReplyBody] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
+  const [styleResult, setStyleResult] = useState(null);
+  const [styleLoading, setStyleLoading] = useState(false);
+  const [styleMarksOn, setStyleMarksOn] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(true);
@@ -329,6 +355,21 @@ export default function Editor() {
       setError(err.message);
     } finally {
       setDrafting(false);
+    }
+  }
+
+  async function checkStyle() {
+    if (!body.trim()) return;
+    setStyleLoading(true);
+    setError("");
+    try {
+      const result = await itemsApi.styleCheck(projectId, itemId, body);
+      setStyleResult(result);
+      setStyleMarksOn(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setStyleLoading(false);
     }
   }
 
@@ -589,6 +630,15 @@ export default function Editor() {
                   <MessageSquare size={14} />
                   {annotationsOn ? "Editing" : "Annotate"}
                 </button>
+                <button
+                  className={styleMarksOn ? "accent" : undefined}
+                  onClick={checkStyle}
+                  disabled={styleLoading || !body.trim()}
+                  title="Check this draft against the project style guide"
+                >
+                  {styleLoading ? <Loader2 size={14} className="spinner" /> : <Gauge size={14} />}
+                  {styleLoading ? "Checking…" : "Style check"}
+                </button>
                 <button className="accent" onClick={generateDraft} disabled={drafting}>
                   {drafting ? <Loader2 size={15} className="spinner" /> : <Sparkles size={15} />}
                   {drafting ? "Generating…" : "Generate AI draft"}
@@ -597,7 +647,32 @@ export default function Editor() {
             </div>
 
             <form onSubmit={saveVersion}>
-              {annotationsOn ? (
+              {styleMarksOn ? (
+                <div
+                  className="annotations-view"
+                  onClick={() => {
+                    if (styleResult?.issues.length) {
+                      document
+                        .querySelector("#style-panel")
+                        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                    }
+                  }}
+                >
+                  {(() => {
+                    const parts = buildStyleParts(body, styleResult?.issues ?? []);
+                    if (!parts) return body || "No style issues to highlight.";
+                    return parts.map((p) =>
+                      p.severity ? (
+                        <mark key={p.key} className={`style-mark severity-${p.severity}`}>
+                          {p.text}
+                        </mark>
+                      ) : (
+                        <span key={p.key}>{p.text}</span>
+                      ),
+                    );
+                  })()}
+                </div>
+              ) : annotationsOn ? (
                 <div
                   className="annotations-view"
                   onClick={(e) => {
@@ -794,6 +869,54 @@ export default function Editor() {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+
+          <div className="editor-panel" id="style-panel">
+            <div className="panel-title">
+              <h2>
+                <Gauge size={15} /> Style check
+              </h2>
+              {styleResult && (
+                <span className={`badge ${styleResult.score >= 90 ? "badge-approved" : styleResult.score >= 70 ? "badge-type" : "badge-rejected"}`}>
+                  {styleResult.score}/100
+                </span>
+              )}
+            </div>
+            {!styleResult ? (
+              <p className="muted" style={{ fontSize: "0.85rem" }}>
+                No check run yet. Use the "Style check" button in the editor.
+              </p>
+            ) : styleResult.issues.length === 0 ? (
+              <p className="muted" style={{ fontSize: "0.85rem" }}>
+                No style issues found.
+              </p>
+            ) : (
+              <div>
+                <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.5rem" }}>
+                  {styleResult.demo
+                    ? "Demo rules (add OPENAI_API_KEY for AI review)."
+                    : "AI review against the project style guide."}
+                </p>
+                <div>
+                  {styleResult.issues.map((issue, i) => (
+                    <div key={i} className={`style-issue severity-${issue.severity}`}>
+                      <div className="style-issue-head">
+                        <span className="badge badge-type">{issue.severity}</span>
+                        <span className="style-issue-snippet">“{issue.snippet}”</span>
+                      </div>
+                      <p className="style-issue-reason">{issue.reason}</p>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  className="link-button"
+                  style={{ marginTop: "0.5rem" }}
+                  onClick={() => setStyleMarksOn((s) => !s)}
+                >
+                  {styleMarksOn ? "Hide highlights" : "Highlight in text"}
+                </button>
               </div>
             )}
           </div>
