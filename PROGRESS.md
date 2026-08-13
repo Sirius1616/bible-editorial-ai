@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-12 — checkpoint before starting a new session.
+> **Updated:** 2026-08-13 — #31 (inline/verse comments) closed; frontend comment-UI tests + live smoke verified.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -82,7 +82,7 @@ in parallel internally; phases run in order because later phases depend on earli
 | #20 | Editorial workflow states (assigned → … → ready) | item status (done) ✅ |
 | #30 | Verse-level anchoring, footnotes & cross-refs | item model (done) ✅ |
 | #32 | Version diffing | versions (done) ✅ |
-| #31 | Inline / verse-level comments | #30 + comments (done) — in progress |
+| #31 | Inline / verse-level comments | #30 + comments (done) ✅ |
 
 ### Phase 2 — Editorial core (in progress)
 - ✅ #20 Editorial workflow states: `assigned → in_progress → in_review → qa → ready → archived`,
@@ -94,16 +94,19 @@ in parallel internally; phases run in order because later phases depend on earli
   seeded demo references
 - ✅ #32 Version diffing: `GET .../versions/diff?from=N&to=M` (word- and line-level via
   `difflib.SequenceMatcher`), editor "Compare…" picker with green add / red remove highlights
-- 🔶 #31 Inline / verse-level comments — **in progress** (backend done, frontend mostly done)
+- 🔶 #31 Inline / verse-level comments — **done** ✅ (closed 2026-08-13)
   - Backend ✅: `Comment` gains `parent_id` (one-level threads), `resolved`, and anchors
     (`anchor_type` text|verse, `anchor_start/end`, `anchor_text`); migration `f5e6d7c8b9a0`
     applied; `POST /comments` accepts anchors + `parent_id`, new `PATCH /comments/{id}`
     (resolved/body), 404/400 validation for replies; 2 backend tests (24 passing total)
-  - Frontend 🔶: anchored composer (Whole item / Selected text / Verse tabs), threaded
+  - Frontend ✅: anchored composer (Whole item / Selected text / Verse tabs), threaded
     replies with Resolve/Reopen, "Annotate" toggle that renders inline `<mark>` markers for
-    text-anchored comments (click jumps to the thread). Build + 6 Vitest tests pass, lint
-    clean (0 errors). **Still to do:** add a Vitest test for the comment UI, run the live
-    Playwright smoke check, then close the issue
+    text-anchored comments (click jumps to the thread). Added 6 Vitest UI tests in
+    `frontend/src/__tests__/comments.test.jsx` (thread rendering, inline markers + jump,
+    whole-item / text-anchored / verse-anchored posting, threaded reply, resolve/reopen);
+    stubbed `scrollIntoView` for jsdom in `src/test/setup.js`. 12 frontend tests passing,
+    lint 0 errors, `npm run build` clean. Live Playwright smoke check against the running
+    stack (login → item → anchor → verse → reply → resolve → annotate) passes all 7 steps.
 
 ### Phase 3 — AI intelligence (`priority:p3`)
 | # | Issue | Builds on |
@@ -165,6 +168,7 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `…` Inline / verse-level comments: comment-UI Vitest tests (6) + jsdom scrollIntoView stub, live smoke verified (#31)
 - `95570ba` Inline / verse-level comments: backend anchors/threads/resolve + frontend composer/markers (#31, WIP)
 - `e1d6e5d` Version diffing: compare any two versions (word/line level) (#32)
 - `11f1521` Verse-level anchoring, footnotes & cross-references (#30)
