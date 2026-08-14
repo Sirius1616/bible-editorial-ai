@@ -28,8 +28,9 @@ button.secondary {
 }
 
 button.secondary:hover:not(:disabled) {
-  background: var(--primary);
-  color: #fff;
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .hint {
@@ -58,8 +59,8 @@ button.secondary:hover:not(:disabled) {
 
 .workspace-tab.active {
   border-color: var(--primary);
-  background: var(--primary);
-  color: #fff;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .workspace-tab .tab-count {
@@ -68,6 +69,15 @@ button.secondary:hover:not(:disabled) {
   padding: 0.05rem 0.35rem;
   border-radius: 999px;
   font-size: 0.72rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.workspace-tab.active .tab-count {
+  background: var(--surface);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .workspace-grid {
@@ -138,10 +148,12 @@ button.secondary:hover:not(:disabled) {
 }
 
 .card-title {
-  font-size: 0.95rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  margin-bottom: 0.8rem;
-  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.9rem;
 }
 
 .member-list {

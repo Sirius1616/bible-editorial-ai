@@ -86,6 +86,7 @@ export default function Invite() {
           </div>
         </div>
         <div className="auth-hero">
+          <span className="auth-kicker">Editorial production studio</span>
           <h2>You've been invited to join an editorial workspace.</h2>
           <p>
             Accept the invitation to collaborate with your publishing team on projects, versions,

@@ -57,13 +57,6 @@ function ProjectCard({ project, items, onOpen }) {
   );
 }
 
-const ROLE_BADGE = {
-  owner: "badge-approved",
-  admin: "badge-type",
-  member: "badge-neutral",
-  viewer: "badge-qa",
-};
-
 export default function Projects() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
@@ -182,7 +175,7 @@ export default function Projects() {
               onClick={() => setActiveWs(w.id)}
             >
               {w.name}
-              <span className={`tab-count ${ROLE_BADGE[w.my_role] || "badge-neutral"}`}>
+              <span className="tab-count" title={`Your role: ${w.my_role}`}>
                 {w.member_count}
               </span>
             </button>

@@ -160,6 +160,11 @@ button:disabled {
   cursor: not-allowed;
 }
 
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
 button.primary {
   background: var(--primary);
   border-color: var(--primary);
@@ -227,12 +232,10 @@ textarea {
 
 label {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  color: var(--ink-soft);
+  color: var(--muted);
   margin-bottom: 0.3rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 
@@ -248,7 +251,21 @@ label {
   white-space: nowrap;
 }
 
-.badge-draft {
+.badge-neutral,
+.badge-type {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.badge-primary {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.badge-draft,
+.badge-qa,
+.badge-accent {
   background: var(--accent-soft);
   color: var(--accent);
 }
@@ -261,23 +278,6 @@ label {
 .badge-rejected {
   background: var(--danger-soft);
   color: var(--danger);
-}
-
-.badge-qa {
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
-.badge-neutral {
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
-.badge-type {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  text-transform: capitalize;
 }
 
 

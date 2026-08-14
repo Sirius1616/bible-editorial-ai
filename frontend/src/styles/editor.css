@@ -26,6 +26,17 @@
   gap: 0.45rem;
 }
 
+.meta-line {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.meta-line .sep {
+  color: var(--faint);
+}
+
 .transition-form select {
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--border);
@@ -58,7 +69,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-  padding: 1.2rem 1.35rem;
+  padding: 1.25rem 1.3rem;
   margin-bottom: 1.1rem;
 }
 
@@ -74,10 +85,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ink-soft);
+  letter-spacing: 0.08em;
+  color: var(--muted);
 }
 
 .panel-actions {
@@ -137,8 +149,8 @@
 }
 
 .sidebar-tab.active .tab-count {
-  background: #fff;
-  border-color: transparent;
+  background: var(--surface);
+  border-color: var(--primary);
   color: var(--primary);
 }
 

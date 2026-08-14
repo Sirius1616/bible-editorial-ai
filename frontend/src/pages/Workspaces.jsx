@@ -1,14 +1,14 @@
-import { Building2, Loader2, Plus, Users, X } from "lucide-react";
+import { Building2, Loader2, Plus, Settings, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import { workspacesApi } from "../api";
 
 const ROLE_BADGE = {
-  owner: "badge-approved",
+  owner: "badge-primary",
   admin: "badge-type",
   member: "badge-neutral",
-  viewer: "badge-qa",
+  viewer: "badge-type",
 };
 
 export default function Workspaces() {
@@ -142,7 +142,7 @@ export default function Workspaces() {
                   <Users size={14} /> {w.member_count} member{w.member_count === 1 ? "" : "s"}
                 </span>
                 <span className="row" style={{ gap: "0.3rem" }}>
-                  <X size={14} /> manage
+                  <Settings size={14} /> manage
                 </span>
               </div>
             </Link>

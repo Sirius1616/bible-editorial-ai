@@ -55,6 +55,7 @@ export default function Login() {
         </div>
 
         <div className="auth-hero">
+          <span className="auth-kicker">Editorial production studio</span>
           <h2>Editorial production, with the help of an AI writing partner.</h2>
           <p>
             Draft study notes, devotionals, and reference entries against your project's style

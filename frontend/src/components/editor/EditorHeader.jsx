@@ -35,17 +35,19 @@ export default function EditorHeader({ editor }) {
             <StatusBadge status={item.status} />
             <span className="badge badge-type">{typeLabel}</span>
           </div>
-          <p className="sub" style={{ marginTop: "0.35rem" }}>
+          <p className="sub meta-line" style={{ marginTop: "0.35rem" }}>
             <span className="passage-ref">
               <BookOpen size={15} /> {item.passage || "No passage reference"}
             </span>
-            <span className="muted" style={{ marginLeft: "0.75rem" }}>
+            <span className="sep">·</span>
+            <span className="muted">
               v{versions.length} · updated {formatDate(item.updated_at)}
             </span>
             {item.due_date && (
-              <span className="muted" style={{ marginLeft: "0.75rem" }}>
-                Due {formatDate(item.due_date)}
-              </span>
+              <>
+                <span className="sep">·</span>
+                <span className="muted">Due {formatDate(item.due_date)}</span>
+              </>
             )}
           </p>
         </div>

@@ -32,7 +32,7 @@
   height: 36px;
   border-radius: 10px;
   background: var(--primary);
-  color: var(--accent);
+  color: var(--surface);
   box-shadow: var(--shadow-sm);
 }
 
@@ -121,7 +121,7 @@
 /* ---------- Page header ---------- */
 .page-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.4rem;

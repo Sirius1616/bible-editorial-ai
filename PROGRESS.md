@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-14 — Dark & light mode added; #36 (multi-tenant workspaces + invites) done; frontend refactor/UX pass done earlier today.
+> **Updated:** 2026-08-14 — Design polish pass; dark & light mode added; #36 (multi-tenant workspaces + invites) done; frontend refactor/UX pass done earlier today.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -161,6 +161,29 @@ in parallel internally; phases run in order because later phases depend on earli
   (diff add/del, inline marks, style marks) got dark-specific overrides.
 - ✅ **Test:** new theme toggle test in `auth.test.jsx` (renders App, clicks toggle, asserts
   `data-theme` + persisted storage round-trip). 25 Vitest passing, lint 0 errors, build clean.
+
+### Design polish pass (2026-08-14, no issue)
+Senior-designer review of the UI → targeted fixes for hierarchy, consistency, and template tells
+(not a redesign):
+- **Type hierarchy:** stat numbers bumped to `1.6rem` with tabular numerals (numbers anchor the
+  dashboard); one "eyebrow" style for all section titles (`.card-title`, `.panel-title h2` —
+  small uppercase, tracked, muted); field labels dropped uppercase → sentence-case semibold, so
+  labels no longer shout over the titles they label.
+- **Color semantics:** statuses remapped — assigned=gray, in_progress=indigo, in_review/QA=amber,
+  ready=green, archived=gray (was red "rejected"); roles: only `owner` is emphasized (indigo),
+  admin/member/viewer are neutral gray; amber no longer doubles as brand-mark color.
+- **One "selected" language:** all tabs (sidebar/filter/workspace/anchor) now use the same
+  soft-indigo active state instead of three different treatments (this also fixes the
+  white-on-light-indigo contrast bug in dark mode).
+- **Brand mark:** icon now `var(--surface)` on primary — white in light, dark chip in dark mode
+  (was low-contrast gold).
+- **Alignment/rhythm:** unified card/editor-panel padding, centered `page-head` actions,
+  editor metadata line rebuilt as `.meta-line` (gap-based, `·` separators — no more
+  `marginLeft` hacks), Workspaces "manage" affordance switched from an `X` to a `Settings` icon,
+  secondary button no longer inverts to solid on hover, buttons got `focus-visible` rings.
+- **Auth hero (kept layout, lost the template feel):** added a gold "Editorial production studio"
+  kicker eyebrow, softened the SVG grid pattern, deepened the navy-indigo gradient, and swapped
+  the quote's white hairline for a gold one. 25 Vitest, lint 0 errors, build clean.
 
 ### Phase 4 — Team & workspace (`priority:p4`)
 | # | Issue | Builds on |

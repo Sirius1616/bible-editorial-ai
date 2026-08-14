@@ -9,11 +9,11 @@ export const STATUS_LABELS = {
 
 export const STATUS_BADGE = {
   assigned: "badge-neutral",
-  in_progress: "badge-draft",
-  in_review: "badge-type",
-  qa: "badge-qa",
+  in_progress: "badge-primary",
+  in_review: "badge-accent",
+  qa: "badge-accent",
   ready: "badge-approved",
-  archived: "badge-rejected",
+  archived: "badge-neutral",
 };
 
 export const STATUS_ORDER = {

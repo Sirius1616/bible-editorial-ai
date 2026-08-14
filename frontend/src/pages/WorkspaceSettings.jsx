@@ -13,10 +13,10 @@ import AppLayout from "../components/AppLayout";
 import { workspacesApi } from "../api";
 
 const ROLE_BADGE = {
-  owner: "badge-approved",
+  owner: "badge-primary",
   admin: "badge-type",
   member: "badge-neutral",
-  viewer: "badge-qa",
+  viewer: "badge-type",
 };
 
 const ROLE_OPTIONS = ["admin", "member", "viewer"];
