@@ -2,15 +2,10 @@ import { ArrowLeft, FileText, Loader2 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import {
-  CommentsPanel,
   ContentEditor,
-  DiffPanel,
   EditorHeader,
-  StatusHistoryPanel,
-  StylePanel,
-  TranslationsPanel,
+  EditorSidebar,
   VerseAnchor,
-  VersionsPanel,
 } from "../components/editor";
 import useEditor from "../hooks/useEditor";
 
@@ -62,12 +57,7 @@ export default function Editor() {
         </div>
 
         <div className="side-panel">
-          <VersionsPanel editor={editor} />
-          <DiffPanel editor={editor} />
-          <TranslationsPanel editor={editor} />
-          <StylePanel editor={editor} />
-          <StatusHistoryPanel editor={editor} />
-          <CommentsPanel editor={editor} />
+          <EditorSidebar editor={editor} />
         </div>
       </div>
     </AppLayout>

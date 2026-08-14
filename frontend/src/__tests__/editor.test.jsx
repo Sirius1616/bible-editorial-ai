@@ -115,6 +115,7 @@ describe("Editor save-version happy path", () => {
 
     renderEditor();
     await screen.findByRole("heading", { name: "Faith and Works" });
+    await user.click(screen.getByRole("tab", { name: /Versions/i }));
     expect(screen.getByText("Later draft.")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Delete version v3" }));

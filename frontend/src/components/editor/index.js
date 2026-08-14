@@ -3,6 +3,7 @@ export { default as CommentsPanel } from "./CommentsPanel";
 export { default as ContentEditor } from "./ContentEditor";
 export { default as DiffPanel } from "./DiffPanel";
 export { default as EditorHeader } from "./EditorHeader";
+export { default as EditorSidebar } from "./EditorSidebar";
 export { default as StatusHistoryPanel } from "./StatusHistoryPanel";
 export { default as StylePanel } from "./StylePanel";
 export { default as TranslationsPanel } from "./TranslationsPanel";

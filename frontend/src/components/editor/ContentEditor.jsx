@@ -36,6 +36,7 @@ export default function ContentEditor({ editor }) {
     comments,
     activeCommentId,
     setActiveCommentId,
+    setActiveTab,
   } = editor;
 
   return (
@@ -82,6 +83,7 @@ export default function ContentEditor({ editor }) {
           <div
             className="annotations-view"
             onClick={() => {
+              setActiveTab("style");
               if (styleResult?.issues.length) {
                 document
                   .querySelector("#style-panel")
@@ -110,6 +112,7 @@ export default function ContentEditor({ editor }) {
               const mark = e.target.closest("[data-comment-id]");
               if (mark) {
                 setActiveCommentId(Number(mark.dataset.commentId));
+                setActiveTab("comments");
                 document
                   .querySelector("#comments-panel")
                   ?.scrollIntoView({ behavior: "smooth", block: "nearest" });

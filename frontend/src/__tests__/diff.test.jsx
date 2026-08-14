@@ -88,6 +88,7 @@ describe("Editor version diff", () => {
     renderEditor();
     expect(await screen.findByRole("heading", { name: "Grace" })).toBeInTheDocument();
 
+    await user.click(screen.getByRole("tab", { name: "Diff" }));
     await user.click(screen.getByRole("button", { name: /Compare/i }));
     await user.click(screen.getByRole("button", { name: /Show diff/i }));
 

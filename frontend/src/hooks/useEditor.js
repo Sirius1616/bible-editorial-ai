@@ -46,6 +46,7 @@ export default function useEditor(projectId, itemId) {
   const [translations, setTranslations] = useState(null);
   const [translationsLoading, setTranslationsLoading] = useState(false);
   const [translationsError, setTranslationsError] = useState("");
+  const [activeTab, setActiveTab] = useState("comments");
   const editorRef = useRef(null);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
@@ -230,6 +231,7 @@ export default function useEditor(projectId, itemId) {
       const result = await itemsApi.styleCheck(projectId, itemId, body);
       setStyleResult(result);
       setStyleMarksOn(true);
+      setActiveTab("style");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -246,6 +248,7 @@ export default function useEditor(projectId, itemId) {
     setTranslationsOpen(true);
     setTranslationsError("");
     setTranslationsLoading(true);
+    setActiveTab("translations");
     try {
       const result = await itemsApi.translations(projectId, itemId);
       setTranslations(result);
@@ -412,6 +415,7 @@ export default function useEditor(projectId, itemId) {
     translations,
     translationsLoading,
     translationsError,
+    activeTab,
     error,
     info,
     loading,
@@ -452,5 +456,6 @@ export default function useEditor(projectId, itemId) {
     setFromVersion,
     setToVersion,
     setStyleMarksOn,
+    setActiveTab,
   };
 }

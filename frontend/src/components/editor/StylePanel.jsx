@@ -1,20 +1,17 @@
-import { Gauge } from "lucide-react";
-
 export default function StylePanel({ editor }) {
   const { styleResult, styleMarksOn, setStyleMarksOn } = editor;
 
   return (
-    <div className="editor-panel">
-      <div className="panel-title">
-        <h2>
-          <Gauge size={15} /> Style check
-        </h2>
-        {styleResult && (
-          <span className={`badge ${styleResult.score >= 90 ? "badge-approved" : styleResult.score >= 70 ? "badge-type" : "badge-rejected"}`}>
+    <div id="style-panel">
+      {styleResult && (
+        <div className="panel-actions">
+          <span
+            className={`badge ${styleResult.score >= 90 ? "badge-approved" : styleResult.score >= 70 ? "badge-type" : "badge-rejected"}`}
+          >
             {styleResult.score}/100
           </span>
-        )}
-      </div>
+        </div>
+      )}
       {!styleResult ? (
         <p className="muted" style={{ fontSize: "0.85rem" }}>
           No check run yet. Use the "Style check" button in the editor.

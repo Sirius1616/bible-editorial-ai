@@ -15,11 +15,8 @@ export default function DiffPanel({ editor }) {
   } = editor;
 
   return (
-    <div className="editor-panel">
-      <div className="panel-title">
-        <h2>
-          <GitCompare size={15} /> Version diff
-        </h2>
+    <div>
+      <div className="panel-actions">
         <button className="accent" onClick={openCompare} disabled={versions.length < 2}>
           Compare…
         </button>

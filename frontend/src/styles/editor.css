@@ -31,7 +31,7 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
-  color: var(--text);
+  color: var(--ink);
   font: inherit;
   font-size: 0.85rem;
 }
@@ -78,6 +78,68 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--ink-soft);
+}
+
+.panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.9rem;
+}
+
+.sidebar-card {
+  padding: 0.9rem;
+}
+
+.sidebar-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.sidebar-tab:hover:not(:disabled) {
+  color: var(--primary);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.sidebar-tab.active,
+.sidebar-tab.active:hover:not(:disabled) {
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-color: transparent;
+}
+
+.sidebar-tab .tab-count {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+}
+
+.sidebar-tab.active .tab-count {
+  background: #fff;
+  border-color: transparent;
+  color: var(--primary);
 }
 
 .editor-textarea {

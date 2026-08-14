@@ -1,49 +1,43 @@
-import { History, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { formatDate } from "../../lib/format";
 
 export default function VersionsPanel({ editor }) {
   const { versions, selected, selectVersion, deleteVersion } = editor;
 
+  if (versions.length === 0) {
+    return (
+      <p className="muted" style={{ fontSize: "0.85rem" }}>
+        No versions yet. Generate an AI draft to get started.
+      </p>
+    );
+  }
+
   return (
-    <div className="editor-panel">
-      <div className="panel-title">
-        <h2>
-          <History size={15} /> Versions
-        </h2>
-        <span className="badge badge-neutral">{versions.length}</span>
-      </div>
-      {versions.length === 0 ? (
-        <p className="muted" style={{ fontSize: "0.85rem" }}>
-          No versions yet. Generate an AI draft to get started.
-        </p>
-      ) : (
-        <div>
-          {[...versions].reverse().map((v) => (
-            <div
-              key={v.id}
-              className={`version-item ${selected?.id === v.id ? "active" : ""}`}
-              onClick={() => selectVersion(v)}
+    <div>
+      {[...versions].reverse().map((v) => (
+        <div
+          key={v.id}
+          className={`version-item ${selected?.id === v.id ? "active" : ""}`}
+          onClick={() => selectVersion(v)}
+        >
+          <div className="version-meta">
+            <span className="version-no">v{v.version_number}</span>
+            <span className="version-date">{formatDate(v.created_at)}</span>
+            <button
+              className="icon-button version-delete"
+              title={`Delete version v${v.version_number}`}
+              aria-label={`Delete version v${v.version_number}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteVersion(v);
+              }}
             >
-              <div className="version-meta">
-                <span className="version-no">v{v.version_number}</span>
-                <span className="version-date">{formatDate(v.created_at)}</span>
-                <button
-                  className="icon-button version-delete"
-                  title={`Delete version v${v.version_number}`}
-                  aria-label={`Delete version v${v.version_number}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteVersion(v);
-                  }}
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-              <div className="version-note">{v.change_note || "No note"}</div>
-            </div>
-          ))}
+              <Trash2 size={13} />
+            </button>
+          </div>
+          <div className="version-note">{v.change_note || "No note"}</div>
         </div>
-      )}
+      ))}
     </div>
   );
 }

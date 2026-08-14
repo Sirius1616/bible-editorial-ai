@@ -1,19 +1,11 @@
-import { BookOpen, BookOpenCheck, Loader2, Quote } from "lucide-react";
+import { BookOpen, Loader2, Quote } from "lucide-react";
 
 export default function TranslationsPanel({ editor }) {
   const { translationsOpen, translations, translationsLoading, translationsError, insertQuote } =
     editor;
 
   return (
-    <div className="editor-panel" id="translations-panel">
-      <div className="panel-title">
-        <h2>
-          <BookOpenCheck size={15} /> Translation comparison
-        </h2>
-        {translations && (
-          <span className="badge badge-neutral">{translations.translations.length}</span>
-        )}
-      </div>
+    <div id="translations-panel">
       {!translationsOpen ? (
         <p className="muted" style={{ fontSize: "0.85rem" }}>
           Compare this passage across translations. Use the "Translations" button in the editor.

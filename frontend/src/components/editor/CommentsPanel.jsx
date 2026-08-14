@@ -1,4 +1,4 @@
-import { Loader2, MessageSquare, Send } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 import CommentCard from "./CommentCard";
 
 export default function CommentsPanel({ editor }) {
@@ -23,13 +23,7 @@ export default function CommentsPanel({ editor }) {
   } = editor;
 
   return (
-    <div className="editor-panel comments-panel" id="comments-panel">
-      <div className="panel-title">
-        <h2>
-          <MessageSquare size={15} /> Comments
-        </h2>
-        <span className="badge badge-neutral">{comments.length}</span>
-      </div>
+    <div className="comments-panel" id="comments-panel">
       {comments.length === 0 ? (
         <p className="muted" style={{ fontSize: "0.85rem" }}>
           No comments yet. Select text in the editor or pick a verse to anchor feedback.
