@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-14 — #27 (translation comparison sidebar) done; #24 and #31 closed earlier.
+> **Updated:** 2026-08-14 — Frontend refactor + UX pass (editor component split, version deletion, tabbed sidebar, neutral indigo theme); #27 done, #24 and #31 closed earlier.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -133,6 +133,22 @@ in parallel internally; phases run in order because later phases depend on earli
   frontend passing), lint 0 errors, build clean, live smoke verified (login → item → panel → 6
   cards → insert quote). Demo DB items re-anchored to their seeded passages.
 
+### Frontend maintenance & UX pass (2026-08-14, no issue)
+- ✅ **Refactor:** `pages/Editor` slimmed to a thin container; all state/handlers moved to
+  `hooks/useEditor` (single `editor` object), panels extracted to `components/editor/*`,
+  shared `StatusBadge` in `components/ui/` (also used in ProjectDetail), pure helpers in
+  `lib/format.js` + `lib/annotations.js`; one `styles.css` split into
+  `styles/{base,layout,projects,auth,editor}.css`; deleted dead `store/` barrel.
+- ✅ **Feature:** delete individual content versions — `DELETE .../items/{item_id}/versions/{version_id}`
+  (404 if missing, 400 if it's the item's only version) + trash button with confirm in the
+  Versions tab; 3 new backend tests.
+- ✅ **UX/theme:** the six side panels now live in one tabbed sidebar card
+  (Versions / Diff / Translations / Style / History / Comments) with live count badges,
+  defaulting to Comments and auto-switching on Style check / Translations / annotation clicks;
+  palette retuned to a standard light-gray background with indigo primary (`#4f46e5`),
+  neutral borders, and refined semantic colors.
+- Tests: 38 pytest / 19 Vitest passing, lint 0 errors, build clean.
+
 ### Phase 4 — Team & workspace (`priority:p4`)
 | # | Issue | Builds on |
 |---|-------|-----------|
@@ -185,6 +201,9 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `22756d5` feat: tabbed editor sidebar and neutral indigo theme
+- `28a4ac2` feat: delete individual content versions
+- `a61adee` refactor: split editor into hook + panel components, share StatusBadge, split styles
 - `d4ca2aa` AI translation comparison sidebar: GET .../translations (api.bible real mode + bundled public-domain KJV/WEB demo), editor panel + insert quote (#27)
 - `1b350dc` AI style-guide adherence checking: style-check endpoint (score + issues), demo rules, editor button/panel/inline highlights (#24)
 - `380af69` Inline / verse-level comments: comment-UI Vitest tests (6) + jsdom scrollIntoView stub, live smoke verified (#31)
