@@ -213,8 +213,8 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0.55rem 0.7rem;
-  background: var(--surface-1);
-  color: var(--text);
+  background: var(--surface-2);
+  color: var(--ink);
 }
 
 .ref-field textarea:focus {
@@ -432,7 +432,7 @@
 .anchor-tab {
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: var(--surface-1);
+  background: var(--surface-2);
   padding: 0.25rem 0.65rem;
   font-size: 0.75rem;
   color: var(--muted);
@@ -599,5 +599,37 @@
 
 .comment-box input {
   flex: 1;
+}
+
+/* ---------- Dark theme annotations ---------- */
+[data-theme="dark"] .diff-add {
+  background: rgba(74, 222, 128, 0.18);
+  color: #86efac;
+}
+
+[data-theme="dark"] .diff-del {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .inline-mark {
+  background: rgba(250, 204, 21, 0.25);
+  border-bottom-color: rgba(250, 204, 21, 0.7);
+}
+
+[data-theme="dark"] .inline-mark.active {
+  background: rgba(96, 165, 250, 0.28);
+}
+
+[data-theme="dark"] .style-mark.severity-high {
+  background: rgba(248, 113, 113, 0.22);
+}
+
+[data-theme="dark"] .style-mark.severity-medium {
+  background: rgba(250, 204, 21, 0.22);
+}
+
+[data-theme="dark"] .style-mark.severity-low {
+  background: rgba(96, 165, 250, 0.18);
 }
 

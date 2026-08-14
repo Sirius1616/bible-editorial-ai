@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-14 — #36 (multi-tenant workspaces + invites) done; frontend refactor/UX pass done earlier today.
+> **Updated:** 2026-08-14 — Dark & light mode added; #36 (multi-tenant workspaces + invites) done; frontend refactor/UX pass done earlier today.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -149,6 +149,19 @@ in parallel internally; phases run in order because later phases depend on earli
   neutral borders, and refined semantic colors.
 - Tests: 38 pytest / 19 Vitest passing, lint 0 errors, build clean.
 
+### Dark & light mode (2026-08-14, no issue)
+- ✅ **Theme toggle:** dark + light themes via `data-theme` attribute on `<html>`; toggle button
+  (sun/moon) in the topbar next to logout. Choice persists to `localStorage`
+  (`editorial-theme`); first visit follows the OS `prefers-color-scheme`. An inline script in
+  `index.html` sets the theme before React mounts to avoid a flash of the wrong theme.
+- ✅ **Implementation:** all colors live on CSS variables in `styles/base.css` under `:root`
+  (light) and `[data-theme="dark"]` (dark indigo-neutral palette); `ThemeProvider` + `useTheme`
+  in `src/theme.jsx` wraps the app in `App.jsx`. Hardcoded colors were converted to variables
+  (focus ring, topbar bg, alert borders, badge/stat gold, QA badge), and editor text annotations
+  (diff add/del, inline marks, style marks) got dark-specific overrides.
+- ✅ **Test:** new theme toggle test in `auth.test.jsx` (renders App, clicks toggle, asserts
+  `data-theme` + persisted storage round-trip). 25 Vitest passing, lint 0 errors, build clean.
+
 ### Phase 4 — Team & workspace (`priority:p4`)
 | # | Issue | Builds on |
 |---|-------|-----------|
@@ -223,6 +236,8 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `958e8c9` docs: note invite email delivery deferred to n8n (#23/#40)
+- `a1e98eb` docs: record #36 commit hash in PROGRESS.md
 - `2309a53` feat: multi-tenant workspaces with invites and roles (#36)
 - `1fcaa79` docs: record frontend maintenance pass in PROGRESS.md
 - `22756d5` feat: tabbed editor sidebar and neutral indigo theme

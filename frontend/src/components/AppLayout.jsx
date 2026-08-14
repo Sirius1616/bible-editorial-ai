@@ -1,8 +1,9 @@
-import { BookMarked, LogOut } from "lucide-react";
+import { BookMarked, LogOut, Moon, Sun } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearToken } from "../api/client";
 import { useEffect, useState } from "react";
 import { authApi } from "../api";
+import { useTheme } from "../theme";
 
 function initialsOf(name) {
   return (name || "?")
@@ -15,6 +16,7 @@ function initialsOf(name) {
 
 export default function AppLayout({ children, title = "Bible Editorial AI" }) {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -56,6 +58,14 @@ export default function AppLayout({ children, title = "Bible Editorial AI" }) {
               <div className="user-email">{user?.email || ""}</div>
             </div>
           </div>
+          <button
+            className="ghost"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label="Toggle color theme"
+          >
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
           <button className="ghost" onClick={logout} title="Log out">
             <LogOut size={16} />
           </button>

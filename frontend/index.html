@@ -14,6 +14,17 @@
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2323415c'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%23d9b24c' font-family='Georgia'>✝</text></svg>"
     />
     <title>Bible Editorial AI</title>
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("editorial-theme");
+          var dark = t
+            ? t === "dark"
+            : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

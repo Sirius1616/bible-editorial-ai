@@ -52,7 +52,7 @@
 
 .stat-icon.gold {
   background: var(--accent-soft);
-  color: #92400e;
+  color: var(--accent);
 }
 
 .stat-icon.red {

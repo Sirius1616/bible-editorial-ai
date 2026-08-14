@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import App from "../App";
 
 vi.mock("../api", () => ({
@@ -37,5 +38,23 @@ describe("auth guard", () => {
     render(<App />);
 
     expect(await screen.findByText("Your projects")).toBeInTheDocument();
+  });
+
+  it("toggles between light and dark themes and persists the choice", async () => {
+    const user = userEvent.setup();
+    localStorage.setItem("token", "test-token");
+    window.history.pushState({}, "", "/projects");
+
+    render(<App />);
+
+    const toggle = await screen.findByRole("button", { name: "Toggle color theme" });
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
+
+    await user.click(toggle);
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("dark"));
+    expect(localStorage.getItem("editorial-theme")).toBe("dark");
+
+    await user.click(toggle);
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe("light"));
   });
 });
