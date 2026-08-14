@@ -288,7 +288,7 @@ uv run pytest                            # backend/tests, 57 passing
 
 ## Git history (recent)
 
-- `6dc8f4a` feat: project-level roles & permissions — per-project member roles, permission-gated endpoints, member management UI, read-only editor for restricted roles (#21)
+- `ab7892d` feat: project-level roles & permissions — per-project member roles, permission-gated endpoints, member management UI, read-only editor for restricted roles (#21)
 - `958e8c9` docs: note invite email delivery deferred to n8n (#23/#40)
 - `a1e98eb` docs: record #36 commit hash in PROGRESS.md
 - `2309a53` feat: multi-tenant workspaces with invites and roles (#36)
