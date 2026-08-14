@@ -12,12 +12,9 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
+import StatusBadge from "../components/ui/StatusBadge";
 import { itemsApi, projectsApi } from "../api";
-import { STATUS_BADGE, STATUS_LABELS, STATUS_ORDER } from "../workflow";
-
-function StatusBadge({ status }) {
-  return <span className={`badge ${STATUS_BADGE[status] ?? "badge-neutral"}`}>{STATUS_LABELS[status] ?? status}</span>;
-}
+import { STATUS_ORDER } from "../workflow";
 
 function typeIcon(type) {
   return type === "devotional" ? <BookOpen size={15} /> : <FileText size={15} />;
