@@ -1,8 +1,10 @@
 import { Loader2, Send } from "lucide-react";
+import { canComment } from "../../permissions";
 import CommentCard from "./CommentCard";
 
 export default function CommentsPanel({ editor }) {
   const {
+    project,
     comments,
     activeCommentId,
     toggleResolve,
@@ -21,6 +23,7 @@ export default function CommentsPanel({ editor }) {
     vAnchor,
     setVAnchor,
   } = editor;
+  const canPost = canComment(project?.my_role);
 
   return (
     <div className="comments-panel" id="comments-panel">
@@ -44,11 +47,11 @@ export default function CommentsPanel({ editor }) {
                 >
                   <CommentCard
                     comment={c}
-                    onResolve={() => toggleResolve(c)}
-                    onReply={() => {
+                    onResolve={canPost ? () => toggleResolve(c) : null}
+                    onReply={canPost ? () => {
                       setReplyTo(replyTo === c.id ? null : c.id);
                       setReplyBody("");
-                    }}
+                    } : null}
                     replyOpen={replyTo === c.id}
                     replyBody={replyBody}
                     setReplyBody={setReplyBody}
@@ -58,7 +61,7 @@ export default function CommentsPanel({ editor }) {
                     <CommentCard
                       key={r.id}
                       comment={r}
-                      onResolve={() => toggleResolve(r)}
+                      onResolve={canPost ? () => toggleResolve(r) : null}
                     />
                   ))}
                 </div>
@@ -67,72 +70,74 @@ export default function CommentsPanel({ editor }) {
         </div>
       )}
 
-      <div className="comment-composer">
-        <div className="anchor-tabs">
-          <button
-            className={`anchor-tab ${anchorMode === "none" ? "active" : ""}`}
-            onClick={() => setAnchorMode("none")}
-          >
-            Whole item
-          </button>
-          <button
-            className={`anchor-tab ${anchorMode === "text" ? "active" : ""}`}
-            title="Select text in the editor first"
-            onClick={() => setAnchorMode(selectionAnchor ? "text" : "none")}
-          >
-            Selected text{selectionAnchor ? "" : " (select in editor)"}
-          </button>
-          <button
-            className={`anchor-tab ${anchorMode === "verse" ? "active" : ""}`}
-            onClick={() => setAnchorMode("verse")}
-          >
-            Verse
-          </button>
-        </div>
-        {anchorMode === "text" && (
-          <p className="anchor-preview">Anchored to “{selectionAnchor?.text}”</p>
-        )}
-        {anchorMode === "verse" && (
-          <div className="anchor-row" style={{ marginTop: "0.5rem" }}>
-            <input
-              placeholder="Book"
-              value={vAnchor.book}
-              onChange={(e) => setVAnchor({ ...vAnchor, book: e.target.value })}
-            />
-            <input
-              type="number"
-              min="1"
-              placeholder="Ch."
-              value={vAnchor.chapter}
-              onChange={(e) => setVAnchor({ ...vAnchor, chapter: e.target.value })}
-            />
-            <input
-              type="number"
-              min="1"
-              placeholder="V."
-              value={vAnchor.verse}
-              onChange={(e) => setVAnchor({ ...vAnchor, verse: e.target.value })}
-            />
-            <input
-              type="number"
-              min="1"
-              placeholder="End v."
-              value={vAnchor.endVerse}
-              onChange={(e) => setVAnchor({ ...vAnchor, endVerse: e.target.value })}
-            />
+      {canPost && (
+        <div className="comment-composer">
+          <div className="anchor-tabs">
+            <button
+              className={`anchor-tab ${anchorMode === "none" ? "active" : ""}`}
+              onClick={() => setAnchorMode("none")}
+            >
+              Whole item
+            </button>
+            <button
+              className={`anchor-tab ${anchorMode === "text" ? "active" : ""}`}
+              title="Select text in the editor first"
+              onClick={() => setAnchorMode(selectionAnchor ? "text" : "none")}
+            >
+              Selected text{selectionAnchor ? "" : " (select in editor)"}
+            </button>
+            <button
+              className={`anchor-tab ${anchorMode === "verse" ? "active" : ""}`}
+              onClick={() => setAnchorMode("verse")}
+            >
+              Verse
+            </button>
           </div>
-        )}
-        <form className="comment-box" onSubmit={addComment}>
-          <input
-            placeholder="Add a comment…"
-            value={commentBody}
-            onChange={(e) => setCommentBody(e.target.value)}
-          />
-          <button type="submit" disabled={!commentBody.trim() || commentLoading}>
-            {commentLoading ? <Loader2 size={16} className="spinner" /> : <Send size={16} />}
-          </button>
-        </form>
-      </div>
+          {anchorMode === "text" && (
+            <p className="anchor-preview">Anchored to “{selectionAnchor?.text}”</p>
+          )}
+          {anchorMode === "verse" && (
+            <div className="anchor-row" style={{ marginTop: "0.5rem" }}>
+              <input
+                placeholder="Book"
+                value={vAnchor.book}
+                onChange={(e) => setVAnchor({ ...vAnchor, book: e.target.value })}
+              />
+              <input
+                type="number"
+                min="1"
+                placeholder="Ch."
+                value={vAnchor.chapter}
+                onChange={(e) => setVAnchor({ ...vAnchor, chapter: e.target.value })}
+              />
+              <input
+                type="number"
+                min="1"
+                placeholder="V."
+                value={vAnchor.verse}
+                onChange={(e) => setVAnchor({ ...vAnchor, verse: e.target.value })}
+              />
+              <input
+                type="number"
+                min="1"
+                placeholder="End v."
+                value={vAnchor.endVerse}
+                onChange={(e) => setVAnchor({ ...vAnchor, endVerse: e.target.value })}
+              />
+            </div>
+          )}
+          <form className="comment-box" onSubmit={addComment}>
+            <input
+              placeholder="Add a comment…"
+              value={commentBody}
+              onChange={(e) => setCommentBody(e.target.value)}
+            />
+            <button type="submit" disabled={!commentBody.trim() || commentLoading}>
+              {commentLoading ? <Loader2 size={16} className="spinner" /> : <Send size={16} />}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

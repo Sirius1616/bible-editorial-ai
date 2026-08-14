@@ -7,13 +7,17 @@ import {
   Loader2,
   Plus,
   Search,
+  Shield,
+  Trash2,
+  UserPlus,
   XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import StatusBadge from "../components/ui/StatusBadge";
-import { itemsApi, projectsApi } from "../api";
+import { itemsApi, projectsApi, workspacesApi } from "../api";
+import { PROJECT_ROLE_LABELS, canEdit, isAdmin } from "../permissions";
 import { STATUS_ORDER } from "../workflow";
 
 function typeIcon(type) {
@@ -39,6 +43,11 @@ export default function ProjectDetail() {
     endChapter: "",
     endVerse: "",
   });
+  const [members, setMembers] = useState([]);
+  const [workspaceMembers, setWorkspaceMembers] = useState([]);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [addForm, setAddForm] = useState({ user_id: "", role: "editor" });
+  const [notice, setNotice] = useState("");
 
   async function load() {
     setLoading(true);
@@ -50,6 +59,14 @@ export default function ProjectDetail() {
       ]);
       setProject(p);
       setItems(items.sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]));
+      if (isAdmin(p.my_role)) {
+        const [ms, ws] = await Promise.all([
+          projectsApi.members(projectId),
+          p.workspace_id ? workspacesApi.get(p.workspace_id) : Promise.resolve(null),
+        ]);
+        setMembers(ms);
+        setWorkspaceMembers(ws?.members || []);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -85,6 +102,46 @@ export default function ProjectDetail() {
     } catch (err) {
       setError(err.message);
       setCreating(false);
+    }
+  }
+
+  async function addMember(e) {
+    e.preventDefault();
+    setError("");
+    setNotice("");
+    if (!addForm.user_id) return;
+    try {
+      await projectsApi.addMember(projectId, Number(addForm.user_id), addForm.role);
+      setAddForm({ user_id: "", role: "editor" });
+      setShowAddMember(false);
+      setNotice("Member added to the project.");
+      await load();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function changeRole(userId, role) {
+    setError("");
+    try {
+      await projectsApi.updateMember(projectId, userId, role);
+      setMembers((list) =>
+        list.map((m) => (m.user_id === userId ? { ...m, role } : m)),
+      );
+    } catch (err) {
+      setError(err.message);
+      await load();
+    }
+  }
+
+  async function removeMember(userId) {
+    setError("");
+    if (!window.confirm("Remove this member from the project?")) return;
+    try {
+      await projectsApi.removeMember(projectId, userId);
+      setMembers((list) => list.filter((m) => m.user_id !== userId));
+    } catch (err) {
+      setError(err.message);
     }
   }
 
@@ -156,18 +213,21 @@ export default function ProjectDetail() {
           </div>
           <p className="sub">{project.description || "No description provided."}</p>
         </div>
-        <button className="primary" onClick={() => setShowForm((s) => !s)}>
-          {showForm ? (
-            "Cancel"
-          ) : (
-            <>
-              <Plus size={16} /> New item
-            </>
-          )}
-        </button>
+        {canEdit(project.my_role) && (
+          <button className="primary" onClick={() => setShowForm((s) => !s)}>
+            {showForm ? (
+              "Cancel"
+            ) : (
+              <>
+                <Plus size={16} /> New item
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
+      {notice && <div className="alert alert-success">{notice}</div>}
 
       {showForm && (
         <div className="card">
@@ -340,7 +400,7 @@ export default function ProjectDetail() {
                 ? "Create your first study note, devotional, or reference entry to start the editorial flow."
                 : "Try a different filter or search term."}
             </p>
-            {items.length === 0 && (
+            {items.length === 0 && canEdit(project.my_role) && (
               <button className="primary" onClick={() => setShowForm(true)}>
                 <Plus size={16} /> Create item
               </button>
@@ -388,6 +448,104 @@ export default function ProjectDetail() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {isAdmin(project.my_role) && (
+        <section className="card" style={{ marginTop: "1.5rem" }}>
+          <div className="panel-title">
+            <h2 className="card-title">
+              <Shield size={15} /> Project members
+            </h2>
+            <span className="muted" style={{ fontSize: "0.8rem" }}>
+              {project.member_count} member{project.member_count === 1 ? "" : "s"} on this project
+            </span>
+          </div>
+          <div className="member-list">
+            {members.map((m) => (
+              <div className="member-row" key={m.id}>
+                <span className="avatar">
+                  {(m.full_name || "?")
+                    .split(/\s+/)
+                    .map((w) => w[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()}
+                </span>
+                <div className="member-info">
+                  <div className="member-name">{m.full_name}</div>
+                  <div className="member-email">{m.email}</div>
+                </div>
+                <div className="row" style={{ gap: "0.5rem" }}>
+                  <select
+                    aria-label={`Role of ${m.full_name}`}
+                    value={m.role}
+                    onChange={(e) => changeRole(m.user_id, e.target.value)}
+                  >
+                    {Object.keys(PROJECT_ROLE_LABELS).map((r) => (
+                      <option key={r} value={r}>
+                        {PROJECT_ROLE_LABELS[r]}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    className="ghost"
+                    title="Remove member"
+                    onClick={() => removeMember(m.user_id)}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {showAddMember && (
+            <form className="invite-form" onSubmit={addMember}>
+              <div>
+                <label htmlFor="pm-user">Workspace member</label>
+                <select
+                  id="pm-user"
+                  value={addForm.user_id}
+                  onChange={(e) => setAddForm({ ...addForm, user_id: e.target.value })}
+                  required
+                >
+                  <option value="" disabled>
+                    Choose a workspace member…
+                  </option>
+                  {workspaceMembers
+                    .filter((wm) => !members.some((m) => m.user_id === wm.user_id))
+                    .map((wm) => (
+                      <option key={wm.user_id} value={wm.user_id}>
+                        {wm.full_name} ({wm.email})
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="pm-role">Role</label>
+                <select
+                  id="pm-role"
+                  value={addForm.role}
+                  onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}
+                >
+                  {Object.keys(PROJECT_ROLE_LABELS).map((r) => (
+                    <option key={r} value={r}>
+                      {PROJECT_ROLE_LABELS[r]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className="primary">
+                <UserPlus size={16} /> Add to project
+              </button>
+            </form>
+          )}
+          {!showAddMember && (
+            <button className="secondary" onClick={() => setShowAddMember(true)}>
+              <UserPlus size={16} /> Add member
+            </button>
+          )}
+        </section>
       )}
     </AppLayout>
   );

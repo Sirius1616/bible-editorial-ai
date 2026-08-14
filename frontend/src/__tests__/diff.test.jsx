@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import Editor from "../pages/Editor";
 
 const mocks = vi.hoisted(() => ({
-  project: { id: 1, name: "Sample Study Bible", style_guide: "" },
+  project: { id: 1, name: "Sample Study Bible", style_guide: "", my_role: "admin" },
   item: {
     id: 10,
     project_id: 1,

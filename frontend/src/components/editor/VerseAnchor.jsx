@@ -1,7 +1,22 @@
 import { BookOpen, Loader2, Save } from "lucide-react";
+import { canEdit } from "../../permissions";
 
 export default function VerseAnchor({ editor }) {
-  const { anchor, setAnchor, savingAnchor, anchorSaved, saveAnchor } = editor;
+  const { project, item, anchor, setAnchor, savingAnchor, anchorSaved, saveAnchor } = editor;
+  const editable = canEdit(project?.my_role);
+
+  if (!editable) {
+    return (
+      <div className="card anchor-edit">
+        <div className="panel-title">
+          <h2>
+            <BookOpen size={15} /> Verse anchor
+          </h2>
+          <span className="badge badge-neutral passage-ref">{item.passage || "No passage reference"}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form className="card anchor-edit" onSubmit={saveAnchor}>

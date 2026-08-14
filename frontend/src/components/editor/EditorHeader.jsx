@@ -1,6 +1,7 @@
 import { BookOpen, CheckCircle2, Download, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDate } from "../../lib/format";
+import { canExport, canReview } from "../../permissions";
 import { ALLOWED_TRANSITIONS, STATUS_LABELS } from "../../workflow";
 import StatusBadge from "../ui/StatusBadge";
 
@@ -17,6 +18,7 @@ export default function EditorHeader({ editor }) {
     exportMarkdown,
   } = editor;
   const typeLabel = (item.content_type || "study_note").replace("_", " ");
+  const role = project?.my_role || "";
 
   return (
     <>
@@ -52,10 +54,12 @@ export default function EditorHeader({ editor }) {
           </p>
         </div>
         <div className="actions">
-          <button onClick={exportMarkdown} title="Export Markdown">
-            <Download size={16} /> Export
-          </button>
-          {(ALLOWED_TRANSITIONS[item.status] ?? []).length > 0 && (
+          {canExport(role) && (
+            <button onClick={exportMarkdown} title="Export Markdown">
+              <Download size={16} /> Export
+            </button>
+          )}
+          {canReview(role) && (ALLOWED_TRANSITIONS[item.status] ?? []).length > 0 && (
             <form className="transition-form" onSubmit={transitionTo}>
               <select
                 value={nextStatus}

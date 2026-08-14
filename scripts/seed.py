@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.core.security import hash_password
 from app.db.session import SessionLocal
 from app.models.content import ContentItem, ContentVersion
-from app.models.project import Project
+from app.models.project import Project, ProjectMember
 from app.models.user import User
 from app.models.workspace import Workspace, WorkspaceMember
 
@@ -81,6 +81,23 @@ def seed() -> None:
             db.add(project)
             db.flush()
             print(f"Created sample project: {project.name}")
+
+        if not db.scalar(
+            select(ProjectMember).where(
+                ProjectMember.project_id == project.id,
+                ProjectMember.user_id == user.id,
+            )
+        ):
+            db.add(ProjectMember(project_id=project.id, user_id=user.id, role="admin"))
+            print("Added demo user as project admin")
+        if not db.scalar(
+            select(ProjectMember).where(
+                ProjectMember.project_id == project.id,
+                ProjectMember.user_id == coeditor.id,
+            )
+        ):
+            db.add(ProjectMember(project_id=project.id, user_id=coeditor.id, role="editor"))
+            print("Added co-editor to project as editor")
 
         if not db.scalar(
             select(ContentItem).where(ContentItem.project_id == project.id)

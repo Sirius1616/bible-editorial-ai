@@ -11,6 +11,13 @@ export const projectsApi = {
   list: () => api("/projects"),
   get: (projectId) => api(`/projects/${projectId}`),
   create: (payload) => api("/projects", { method: "POST", body: payload }),
+  members: (projectId) => api(`/projects/${projectId}/members`),
+  addMember: (projectId, userId, role) =>
+    api(`/projects/${projectId}/members`, { method: "POST", body: { user_id: userId, role } }),
+  updateMember: (projectId, userId, role) =>
+    api(`/projects/${projectId}/members/${userId}`, { method: "PATCH", body: { role } }),
+  removeMember: (projectId, userId) =>
+    api(`/projects/${projectId}/members/${userId}`, { method: "DELETE" }),
 };
 
 export const workspacesApi = {

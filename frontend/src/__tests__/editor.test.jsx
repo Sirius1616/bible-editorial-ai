@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import Editor from "../pages/Editor";
 
 const mocks = vi.hoisted(() => ({
-  project: { id: 1, name: "Sample Study Bible", style_guide: "" },
+  project: { id: 1, name: "Sample Study Bible", style_guide: "", my_role: "admin" },
   item: {
     id: 10,
     project_id: 1,
@@ -126,5 +126,49 @@ describe("Editor save-version happy path", () => {
     expect(await screen.findByText("Version v3 deleted.")).toBeInTheDocument();
     expect(screen.queryByText("Later draft.")).not.toBeInTheDocument();
     confirmSpy.mockRestore();
+  });
+});
+
+describe("Editor read-only for restricted roles", () => {
+  it("locks the textarea and hides save/export for reviewers but keeps transitions", async () => {
+    const { projectsApi, itemsApi } = await import("../api");
+    projectsApi.get.mockResolvedValueOnce({
+      id: 1,
+      name: "Sample Study Bible",
+      style_guide: "",
+      my_role: "reviewer",
+    });
+    itemsApi.get.mockResolvedValueOnce({ ...mocks.item, status: "in_progress" });
+
+    renderEditor();
+
+    await screen.findByRole("heading", { name: "Faith and Works" });
+    const textarea = screen.getByPlaceholderText(
+      "Write or edit content here. The project style guide will guide AI drafts.",
+    );
+    expect(textarea).toHaveAttribute("readonly");
+    expect(screen.queryByRole("button", { name: /Save new version/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Generate AI draft/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Export/i })).not.toBeInTheDocument();
+    expect(screen.getAllByText(/Move to/).length).toBeGreaterThan(0);
+  });
+
+  it("hides transitions and the comment composer for viewers", async () => {
+    const { projectsApi, itemsApi } = await import("../api");
+    projectsApi.get.mockResolvedValueOnce({
+      id: 1,
+      name: "Sample Study Bible",
+      style_guide: "",
+      my_role: "viewer",
+    });
+    itemsApi.get.mockResolvedValueOnce({ ...mocks.item, status: "in_progress" });
+
+    renderEditor();
+
+    await screen.findByRole("heading", { name: "Faith and Works" });
+    expect(screen.queryByText(/Move to/)).not.toBeInTheDocument();
+    await screen.findByRole("tab", { name: /Comments/i });
+    await userEvent.click(screen.getByRole("tab", { name: /Comments/i }));
+    expect(screen.queryByPlaceholderText("Add a comment…")).not.toBeInTheDocument();
   });
 });

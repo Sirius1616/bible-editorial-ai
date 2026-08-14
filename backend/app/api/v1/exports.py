@@ -3,7 +3,7 @@ from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import PROJECT_EXPORT_ROLES, ensure_project_role, get_current_user
 from app.api.v1.projects import get_accessible_project
 from app.db.session import get_db
 from app.models.content import ContentItem, ContentVersion
@@ -22,6 +22,7 @@ def export_item(
     db: Session = Depends(get_db),
 ) -> Response:
     project = get_accessible_project(project_id, user, db)
+    ensure_project_role(db, project, user, PROJECT_EXPORT_ROLES)
     item = db.get(ContentItem, item_id)
     if item is None or item.project_id != project.id:
         raise HTTPException(status_code=404, detail="Content item not found")

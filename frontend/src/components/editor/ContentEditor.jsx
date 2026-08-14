@@ -7,10 +7,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import { buildAnnotatedParts, buildStyleParts } from "../../lib/annotations";
+import { canEdit } from "../../permissions";
 
 export default function ContentEditor({ editor }) {
   const {
     editorRef,
+    project,
     body,
     setBody,
     setSelectionAnchor,
@@ -38,6 +40,7 @@ export default function ContentEditor({ editor }) {
     setActiveCommentId,
     setActiveTab,
   } = editor;
+  const editable = canEdit(project?.my_role);
 
   return (
     <div className="editor-panel">
@@ -71,10 +74,12 @@ export default function ContentEditor({ editor }) {
             <BookOpenCheck size={14} />
             {translationsOpen ? "Hide translations" : "Translations"}
           </button>
-          <button className="accent" onClick={generateDraft} disabled={drafting}>
-            {drafting ? <Loader2 size={15} className="spinner" /> : <Sparkles size={15} />}
-            {drafting ? "Generating…" : "Generate AI draft"}
-          </button>
+          {editable && (
+            <button className="accent" onClick={generateDraft} disabled={drafting}>
+              {drafting ? <Loader2 size={15} className="spinner" /> : <Sparkles size={15} />}
+              {drafting ? "Generating…" : "Generate AI draft"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -142,6 +147,7 @@ export default function ContentEditor({ editor }) {
             className="editor-textarea"
             ref={editorRef}
             value={body}
+            readOnly={!editable}
             onChange={(e) => setBody(e.target.value)}
             onSelect={(e) => {
               const el = e.target;
@@ -157,42 +163,50 @@ export default function ContentEditor({ editor }) {
             rows={16}
           />
         )}
-        <input
-          className="editor-note-input"
-          placeholder="Change note (e.g. revised intro, checked against NIV)"
-          value={changeNote}
-          onChange={(e) => setChangeNote(e.target.value)}
-        />
-        <div className="refs-grid">
-          <label className="ref-field">
-            <span>Footnotes (one per line)</span>
-            <textarea
-              rows={3}
-              placeholder={"e.g. Greek: monogenes, only-begotten."}
-              value={footnotesText}
-              onChange={(e) => setFootnotesText(e.target.value)}
+        {editable && (
+          <>
+            <input
+              className="editor-note-input"
+              placeholder="Change note (e.g. revised intro, checked against NIV)"
+              value={changeNote}
+              onChange={(e) => setChangeNote(e.target.value)}
             />
-          </label>
-          <label className="ref-field">
-            <span>Cross-references (one per line)</span>
-            <textarea
-              rows={3}
-              placeholder={"e.g. John 1:14"}
-              value={crossRefsText}
-              onChange={(e) => setCrossRefsText(e.target.value)}
-            />
-          </label>
-        </div>
+            <div className="refs-grid">
+              <label className="ref-field">
+                <span>Footnotes (one per line)</span>
+                <textarea
+                  rows={3}
+                  placeholder={"e.g. Greek: monogenes, only-begotten."}
+                  value={footnotesText}
+                  onChange={(e) => setFootnotesText(e.target.value)}
+                />
+              </label>
+              <label className="ref-field">
+                <span>Cross-references (one per line)</span>
+                <textarea
+                  rows={3}
+                  placeholder={"e.g. John 1:14"}
+                  value={crossRefsText}
+                  onChange={(e) => setCrossRefsText(e.target.value)}
+                />
+              </label>
+            </div>
+          </>
+        )}
         <div className="editor-actions">
           <span className="muted" style={{ fontSize: "0.8rem" }}>
             {body.length} characters
           </span>
           <div className="row">
             {saved && <span className="badge badge-approved">Saved</span>}
-            <button type="submit" className="primary" disabled={saving}>
-              {saving ? <Loader2 size={16} className="spinner" /> : <Save size={16} />}
-              Save new version
-            </button>
+            {editable ? (
+              <button type="submit" className="primary" disabled={saving}>
+                {saving ? <Loader2 size={16} className="spinner" /> : <Save size={16} />}
+                Save new version
+              </button>
+            ) : (
+              <span className="badge badge-neutral">Read-only</span>
+            )}
           </div>
         </div>
       </form>

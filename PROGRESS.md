@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-14 — Design polish pass; dark & light mode added; #36 (multi-tenant workspaces + invites) done; frontend refactor/UX pass done earlier today.
+> **Updated:** 2026-08-14 — #21 (project-level roles & permissions) done; #36 (multi-tenant workspaces + invites) done; design polish + dark/light mode done.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -220,6 +220,32 @@ Senior-designer review of the UI → targeted fixes for hierarchy, consistency, 
     5 frontend tests (50 pytest / 24 Vitest), lint 0 errors, build clean, live smoke verified
     (demo + coeditor share projects, foreign workspace → 404)
 
+- ✅ #21 Roles & permissions — **done** (2026-08-14)
+  - Role model ✅: `ProjectMember` (project_id, user_id, role, unique per project) — per-project
+    roles `admin / editor / reviewer / proofreader / viewer`; migration `d1e5f9a3b4c6` creates the
+    table and backfills each project's creator as `admin`; creator auto-added as admin on create
+  - Effective role ✅: explicit `ProjectMember` role wins; otherwise falls back to the workspace
+    role (owner/admin → admin, member → editor, viewer → viewer) so existing memberships keep
+    working without per-project rows. Every project response now includes `member_count` + `my_role`
+  - Permission checks ✅: content edit (items/versions/anchors/AI draft/delete) requires
+    admin|editor; transitions + approve/reject require admin|reviewer (editors can no longer
+    approve); comments/style-check require non-viewer; export requires admin|editor; project
+    update/delete + member management require admin — all enforced server-side (403)
+  - Member management ✅: `GET/POST /projects/{id}/members`, `PATCH .../members/{user_id}`,
+    `DELETE .../members/{user_id}` — add a workspace member with a role, change roles, remove;
+    last-admin guard (can't demote/remove yourself as the only admin), 409 on duplicate,
+    400 if the target isn't a workspace member
+  - Frontend ✅: "Project members" card on the project page (list + role dropdown + remove +
+    add-from-workspace picker, admin only); permission-aware editor — read-only textarea + hidden
+    save/change-note/footnotes/AI-draft for non-editors, transition control only for
+    admin/reviewer, export only for admin/editor, comment composer hidden for viewers,
+    version-delete hidden for non-editors
+  - Tests ✅: 7 backend role tests (creator-admin, per-role matrix, fallback, viewer read-only,
+    admin management + last-admin guard, non-workspace add → 400) + 5 Vitest UI tests
+    (members card, add/change/remove, viewer hides controls) + 1 editor read-only test —
+    57 pytest / 32 Vitest, lint 0 errors, build clean; migration verified end-to-end on a fresh
+    Postgres (full chain `upgrade head` + backfill)
+
 ### Phase 5 — Publishing, business & integrations (`priority:p5`)
 | # | Issue | Builds on |
 |---|-------|-----------|
@@ -255,13 +281,14 @@ npm install
 npm run dev                              # http://localhost:3000
 
 # 5. Tests
-uv run pytest                            # backend/tests, 8 passing
+uv run pytest                            # backend/tests, 57 passing
 ```
 
 ---
 
 ## Git history (recent)
 
+- `6dc8f4a` feat: project-level roles & permissions — per-project member roles, permission-gated endpoints, member management UI, read-only editor for restricted roles (#21)
 - `958e8c9` docs: note invite email delivery deferred to n8n (#23/#40)
 - `a1e98eb` docs: record #36 commit hash in PROGRESS.md
 - `2309a53` feat: multi-tenant workspaces with invites and roles (#36)
@@ -269,6 +296,9 @@ uv run pytest                            # backend/tests, 8 passing
 - `22756d5` feat: tabbed editor sidebar and neutral indigo theme
 - `28a4ac2` feat: delete individual content versions
 - `a61adee` refactor: split editor into hook + panel components, share StatusBadge, split styles
+- `abdb64a` fix: editor toolbar wraps instead of pushing buttons off panel
+- `48a8ad7` style: design polish pass — hierarchy, consistency, template cleanup
+- `71ab5e2` feat: dark and light theme with persistent toggle
 - `d4ca2aa` AI translation comparison sidebar: GET .../translations (api.bible real mode + bundled public-domain KJV/WEB demo), editor panel + insert quote (#27)
 - `1b350dc` AI style-guide adherence checking: style-check endpoint (score + issues), demo rules, editor button/panel/inline highlights (#24)
 - `380af69` Inline / verse-level comments: comment-UI Vitest tests (6) + jsdom scrollIntoView stub, live smoke verified (#31)

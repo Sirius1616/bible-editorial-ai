@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.api.deps import ensure_editor, get_current_user
+from app.api.deps import (
+    PROJECT_COMMENT_ROLES,
+    PROJECT_EDIT_ROLES,
+    ensure_project_role,
+    get_current_user,
+)
 from app.api.v1.projects import get_accessible_project
 from app.db.session import get_db
 from app.models.content import Comment, ContentItem, ContentVersion
@@ -74,7 +79,7 @@ def create_item(
     db: Session = Depends(get_db),
 ) -> ContentItem:
     project = get_accessible_project(project_id, user, db)
-    ensure_editor(db, project.workspace_id, user.id)
+    ensure_project_role(db, project, user, PROJECT_EDIT_ROLES)
     data = payload.model_dump(exclude={"verse_start", "verse_end", "passage"})
     if payload.passage:
         data["passage"] = payload.passage
@@ -110,7 +115,7 @@ def update_item(
     db: Session = Depends(get_db),
 ) -> ContentItem:
     project = get_accessible_project(project_id, user, db)
-    ensure_editor(db, project.workspace_id, user.id)
+    ensure_project_role(db, project, user, PROJECT_EDIT_ROLES)
     item = get_owned_item(project, item_id, db)
     if payload.model_fields_set & {"verse_start", "verse_end"}:
         apply_verse_anchor(item, payload)
@@ -131,7 +136,7 @@ def delete_item(
     db: Session = Depends(get_db),
 ) -> None:
     project = get_accessible_project(project_id, user, db)
-    ensure_editor(db, project.workspace_id, user.id)
+    ensure_project_role(db, project, user, PROJECT_EDIT_ROLES)
     item = get_owned_item(project, item_id, db)
     db.delete(item)
     db.commit()
@@ -146,7 +151,7 @@ def add_version(
     db: Session = Depends(get_db),
 ) -> ContentVersion:
     project = get_accessible_project(project_id, user, db)
-    ensure_editor(db, project.workspace_id, user.id)
+    ensure_project_role(db, project, user, PROJECT_EDIT_ROLES)
     item = get_owned_item(project, item_id, db)
     latest = db.scalar(
         select(ContentVersion)
@@ -196,7 +201,7 @@ def delete_version(
     db: Session = Depends(get_db),
 ) -> None:
     project = get_accessible_project(project_id, user, db)
-    ensure_editor(db, project.workspace_id, user.id)
+    ensure_project_role(db, project, user, PROJECT_EDIT_ROLES)
     get_owned_item(project, item_id, db)
     version = db.get(ContentVersion, version_id)
     if version is None or version.content_item_id != item_id:
@@ -253,7 +258,7 @@ def add_comment(
     db: Session = Depends(get_db),
 ) -> Comment:
     project = get_accessible_project(project_id, user, db)
-    ensure_editor(db, project.workspace_id, user.id)
+    ensure_project_role(db, project, user, PROJECT_COMMENT_ROLES)
     get_owned_item(project, item_id, db)
     if payload.parent_id is not None:
         parent = db.get(Comment, payload.parent_id)
@@ -287,7 +292,7 @@ def update_comment(
     db: Session = Depends(get_db),
 ) -> Comment:
     project = get_accessible_project(project_id, user, db)
-    ensure_editor(db, project.workspace_id, user.id)
+    ensure_project_role(db, project, user, PROJECT_COMMENT_ROLES)
     get_owned_item(project, item_id, db)
     comment = db.get(Comment, comment_id)
     if comment is None or comment.content_item_id != item_id:

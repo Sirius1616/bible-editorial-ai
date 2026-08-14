@@ -1,6 +1,9 @@
 from datetime import datetime
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
+
+ProjectMemberRole = Literal["admin", "editor", "reviewer", "proofreader", "viewer"]
 
 
 class ProjectCreate(BaseModel):
@@ -30,3 +33,29 @@ class ProjectOut(BaseModel):
     workspace_id: int | None
     workspace_name: str | None = None
     created_at: datetime
+    member_count: int = 0
+    my_role: str = ""
+
+
+class ProjectMemberOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    role: ProjectMemberRole
+    email: EmailStr
+    full_name: str
+    created_at: datetime
+
+
+class ProjectDetailOut(ProjectOut):
+    members: list[ProjectMemberOut] = []
+
+
+class ProjectMemberAdd(BaseModel):
+    user_id: int
+    role: ProjectMemberRole = "editor"
+
+
+class ProjectMemberRoleUpdate(BaseModel):
+    role: ProjectMemberRole
