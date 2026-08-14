@@ -184,6 +184,9 @@ Senior-designer review of the UI → targeted fixes for hierarchy, consistency, 
 - **Auth hero (kept layout, lost the template feel):** added a gold "Editorial production studio"
   kicker eyebrow, softened the SVG grid pattern, deepened the navy-indigo gradient, and swapped
   the quote's white hairline for a gold one. 25 Vitest, lint 0 errors, build clean.
+- ✅ **Bugfix:** editor toolbar no longer blows out when a toggle label grows — `.panel-title`
+  (and its action row) now wrap, so toggling "Translations" → "Hide translations" wraps the
+  buttons instead of pushing "Generate AI draft" off the panel.
 
 ### Phase 4 — Team & workspace (`priority:p4`)
 | # | Issue | Builds on |

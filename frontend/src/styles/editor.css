@@ -75,10 +75,17 @@
 
 .panel-title {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.7rem;
   margin-bottom: 0.9rem;
+}
+
+.panel-title .row {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .panel-title h2 {
