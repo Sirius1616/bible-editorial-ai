@@ -39,6 +39,8 @@ export const itemsApi = {
       method: "POST",
       body: { body },
     }),
+  translations: (projectId, itemId) =>
+    api(`/projects/${projectId}/items/${itemId}/translations`),
   review: (projectId, itemId, action) =>
     api(`/projects/${projectId}/items/${itemId}/review`, { method: "POST", body: { action } }),
   transition: (projectId, itemId, status, note) =>

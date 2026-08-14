@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   BookOpen,
+  BookOpenCheck,
   CheckCircle2,
   Download,
   FileText,
@@ -9,6 +10,7 @@ import {
   History,
   Loader2,
   MessageSquare,
+  Quote,
   Save,
   Send,
   Sparkles,
@@ -187,6 +189,11 @@ export default function Editor() {
   const [styleResult, setStyleResult] = useState(null);
   const [styleLoading, setStyleLoading] = useState(false);
   const [styleMarksOn, setStyleMarksOn] = useState(false);
+  const [translationsOpen, setTranslationsOpen] = useState(false);
+  const [translations, setTranslations] = useState(null);
+  const [translationsLoading, setTranslationsLoading] = useState(false);
+  const [translationsError, setTranslationsError] = useState("");
+  const editorRef = useRef(null);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(true);
@@ -371,6 +378,39 @@ export default function Editor() {
     } finally {
       setStyleLoading(false);
     }
+  }
+
+  async function toggleTranslations() {
+    if (translationsOpen) {
+      setTranslationsOpen(false);
+      setTranslations(null);
+      return;
+    }
+    setTranslationsOpen(true);
+    setTranslationsError("");
+    setTranslationsLoading(true);
+    try {
+      const result = await itemsApi.translations(projectId, itemId);
+      setTranslations(result);
+    } catch (err) {
+      setTranslationsError(err.message);
+    } finally {
+      setTranslationsLoading(false);
+    }
+  }
+
+  function insertQuote(entry) {
+    const quote = `“${entry.text}” (${entry.name}, ${translations?.reference ?? ""})`;
+    setBody((prev) => {
+      const el = editorRef.current;
+      const pos = el ? el.selectionStart : prev.length;
+      if (pos == null) return prev ? `${prev}\n\n${quote}` : quote;
+      const head = prev.slice(0, pos);
+      const tail = prev.slice(pos);
+      const sep = head && !head.endsWith("\n") ? "\n\n" : "";
+      return head + sep + quote + (tail ? "\n\n" + tail : "");
+    });
+    setInfo(`Quote inserted from ${entry.name}.`);
   }
 
   async function transitionTo(e) {
@@ -639,6 +679,14 @@ export default function Editor() {
                   {styleLoading ? <Loader2 size={14} className="spinner" /> : <Gauge size={14} />}
                   {styleLoading ? "Checking…" : "Style check"}
                 </button>
+                <button
+                  className={translationsOpen ? "accent" : undefined}
+                  onClick={toggleTranslations}
+                  title="Compare this passage across translations"
+                >
+                  <BookOpenCheck size={14} />
+                  {translationsOpen ? "Hide translations" : "Translations"}
+                </button>
                 <button className="accent" onClick={generateDraft} disabled={drafting}>
                   {drafting ? <Loader2 size={15} className="spinner" /> : <Sparkles size={15} />}
                   {drafting ? "Generating…" : "Generate AI draft"}
@@ -706,6 +754,7 @@ export default function Editor() {
               ) : (
                 <textarea
                   className="editor-textarea"
+                  ref={editorRef}
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   onSelect={(e) => {
@@ -873,7 +922,64 @@ export default function Editor() {
             )}
           </div>
 
-          <div className="editor-panel" id="style-panel">
+          <div className="editor-panel" id="translations-panel">
+            <div className="panel-title">
+              <h2>
+                <BookOpenCheck size={15} /> Translation comparison
+              </h2>
+              {translations && (
+                <span className="badge badge-neutral">{translations.translations.length}</span>
+              )}
+            </div>
+            {!translationsOpen ? (
+              <p className="muted" style={{ fontSize: "0.85rem" }}>
+                Compare this passage across translations. Use the "Translations" button in the editor.
+              </p>
+            ) : translationsLoading ? (
+              <div className="row" style={{ gap: "0.4rem" }}>
+                <Loader2 size={16} className="spinner" /> Loading translations…
+              </div>
+            ) : translationsError ? (
+              <p className="muted" style={{ fontSize: "0.85rem" }}>{translationsError}</p>
+            ) : translations ? (
+              <div>
+                <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.5rem" }}>
+                  <span className="passage-ref">
+                    <BookOpen size={14} /> {translations.reference}
+                  </span>
+                </p>
+                {translations.demo && translations.note && (
+                  <div className="alert alert-info" style={{ fontSize: "0.78rem", padding: "0.4rem 0.6rem", marginBottom: "0.6rem" }}>
+                    {translations.note}
+                  </div>
+                )}
+                <div>
+                  {translations.translations.map((entry) => (
+                    <div key={entry.name} className={`translation-item ${entry.available ? "" : "unavailable"}`}>
+                      <div className="translation-head">
+                        <span className="badge badge-type">{entry.name}</span>
+                        {entry.demo && <span className="badge badge-neutral">demo</span>}
+                      </div>
+                      {entry.available && entry.text ? (
+                        <div>
+                          <p className="translation-text">{entry.text}</p>
+                          <button className="link-button" onClick={() => insertQuote(entry)}>
+                            <Quote size={14} /> Insert quote
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="muted" style={{ fontSize: "0.8rem" }}>
+                          {entry.available ? "No text available." : "Requires BIBLE_API_KEY."}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="editor-panel">
             <div className="panel-title">
               <h2>
                 <Gauge size={15} /> Style check

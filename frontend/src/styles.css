@@ -1142,6 +1142,33 @@ table.items-table {
   margin: 0;
 }
 
+.translation-item {
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.7rem;
+  margin-bottom: 0.5rem;
+  background: var(--surface-2);
+}
+
+.translation-item.unavailable {
+  opacity: 0.6;
+}
+
+.translation-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+
+.translation-text {
+  font-family: var(--font-serif);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  margin: 0 0 0.35rem;
+}
+
 .comment-composer {
   margin-top: 0.9rem;
   border-top: 1px solid var(--border);

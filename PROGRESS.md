@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-14 — #24 (AI style-guide adherence checking) done; #31 closed earlier.
+> **Updated:** 2026-08-14 — #27 (translation comparison sidebar) done; #24 and #31 closed earlier.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -123,6 +123,15 @@ in parallel internally; phases run in order because later phases depend on earli
   cards panel, inline `<mark>` highlights with severity colors and a toggle. 5 backend tests + 2
   Vitest tests (29 pytest / 14 frontend passing), lint 0 errors, build clean, live Playwright
   smoke verified (score 69/100, 3 flagged issues, 2 inline marks).
+- ✅ #27 Translation comparison sidebar: `GET .../items/{item_id}/translations` uses the item's
+  verse anchor → KJV/WEB (public domain) always, plus ESV/NIV/NASB/NLT slots. Real mode fetches
+  all five via api.bible (Scripture API) when `BIBLE_API_KEY` is set; demo mode serves a bundled
+  public-domain KJV/WEB dataset (seeded passages, fully offline) with a clear "demo data" note.
+  Frontend: "Translations" toggle in the editor loads the comparison panel (reference, per-version
+  cards with serif text, "Insert quote" inserts `“{text}” ({name}, {reference})` at the cursor),
+  400 when the item has no verse anchor. 6 backend tests + 4 Vitest tests (35 pytest / 18
+  frontend passing), lint 0 errors, build clean, live smoke verified (login → item → panel → 6
+  cards → insert quote). Demo DB items re-anchored to their seeded passages.
 
 ### Phase 4 — Team & workspace (`priority:p4`)
 | # | Issue | Builds on |

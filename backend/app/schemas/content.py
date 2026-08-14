@@ -98,6 +98,20 @@ class CommentUpdate(BaseModel):
     resolved: bool | None = None
 
 
+class TranslationEntry(BaseModel):
+    name: str
+    text: str | None = None
+    available: bool = True
+    demo: bool = False
+
+
+class TranslationComparisonOut(BaseModel):
+    reference: str
+    translations: list[TranslationEntry]
+    demo: bool = False
+    note: str | None = None
+
+
 class CommentOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change-me-in-production-change-me-in-production-1234"
     DATABASE_URL: str = "postgresql+psycopg://editorial:editorial@localhost:5432/editorial"
     OPENAI_API_KEY: str = ""
+    BIBLE_API_KEY: str = ""
+    BIBLE_TRANSLATIONS: str = "ESV,NIV,KJV,NASB,NLT"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
 
     CORS_ORIGINS: str = "http://localhost:3000"
@@ -18,6 +20,10 @@ class Settings(BaseSettings):
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+
+    @property
+    def bible_translations(self) -> list[str]:
+        return [name.strip().upper() for name in self.BIBLE_TRANSLATIONS.split(",") if name.strip()]
 
 
 @lru_cache
