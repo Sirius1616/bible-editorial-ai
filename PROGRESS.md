@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-14 — Frontend refactor + UX pass (editor component split, version deletion, tabbed sidebar, neutral indigo theme); #27 done, #24 and #31 closed earlier.
+> **Updated:** 2026-08-14 — #36 (multi-tenant workspaces + invites) done; frontend refactor/UX pass done earlier today.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -152,12 +152,32 @@ in parallel internally; phases run in order because later phases depend on earli
 ### Phase 4 — Team & workspace (`priority:p4`)
 | # | Issue | Builds on |
 |---|-------|-----------|
-| #36 | Multi-tenancy (workspaces) + invites | — (start early, team base) |
+| #36 | Multi-tenancy (workspaces) + invites | — (start early, team base) ✅ |
 | #21 | Roles & permissions | #36 |
 | #22 | Task assignment & workload | #36 |
-| #23 | Notifications (in-app + email) | #22 |
+| #23 | Notifications (in-app + email via n8n) | #22 |
 | #34 | Mentions & audit trail | #23 (audit part is standalone) |
 | #33 | Multi-step sign-off workflow | #20 + #21 |
+
+- ✅ #36 Multi-tenancy (workspaces) + invites — **done** (2026-08-14)
+  - Backend ✅: `Workspace` / `WorkspaceMember` (roles: owner/admin/member/viewer) / `Invitation`
+    models; alembic migration `c9d4e7f1a2b3` creates the tables and backfills a personal workspace
+    per user (existing projects assigned to it); registration auto-creates the personal workspace;
+    projects now belong to a workspace
+  - Access ✅: every project/item/version/comment route now enforces workspace membership
+    (`get_accessible_project`, 404 on foreign data — two publishers cannot see each other's data);
+    `ensure_editor` (owner/admin/member) gates project/item mutations, so `viewer` is read-only
+  - Invite flow ✅: invite-by-email → join link (`/invite/{token}`), accept while logged in,
+    or register-and-join via token; roles applied on accept; duplicate invite → 409,
+    revoke, expiry (7-day default)
+  - Workspace management ✅: create/rename/delete (owner only, blocked while it has projects),
+    member list, role changes, member removal, ownership transfer (previous owner becomes admin)
+  - Frontend ✅: workspace switcher on the Projects page (project create picks the workspace),
+    `/workspaces` list, `/workspaces/:id` settings (members + roles + invites + transfer +
+    rename/delete), `/invite/:token` join page; "Workspaces" link in the topbar
+  - Demo ✅: seed adds `coeditor@editorial.ai` (member) to the demo workspace; 12 backend tests +
+    5 frontend tests (50 pytest / 24 Vitest), lint 0 errors, build clean, live smoke verified
+    (demo + coeditor share projects, foreign workspace → 404)
 
 ### Phase 5 — Publishing, business & integrations (`priority:p5`)
 | # | Issue | Builds on |
@@ -201,6 +221,8 @@ uv run pytest                            # backend/tests, 8 passing
 
 ## Git history (recent)
 
+- `2309a53` feat: multi-tenant workspaces with invites and roles (#36)
+- `1fcaa79` docs: record frontend maintenance pass in PROGRESS.md
 - `22756d5` feat: tabbed editor sidebar and neutral indigo theme
 - `28a4ac2` feat: delete individual content versions
 - `a61adee` refactor: split editor into hook + panel components, share StatusBadge, split styles
