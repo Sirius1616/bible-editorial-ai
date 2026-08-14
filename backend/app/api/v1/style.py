@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from app.api.v1.projects import get_owned_project
+from app.api.v1.projects import get_accessible_project
 from app.db.session import get_db
 from app.models.content import ContentItem, ContentVersion
 from app.models.project import Project
@@ -22,7 +22,7 @@ async def style_check(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    project: Project = get_owned_project(project_id, user, db)
+    project: Project = get_accessible_project(project_id, user, db)
     item = db.get(ContentItem, item_id)
     if item is None or item.project_id != project.id:
         raise HTTPException(status_code=404, detail="Content item not found")

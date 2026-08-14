@@ -4,9 +4,10 @@ import { MemoryRouter } from "react-router-dom";
 import Projects from "../pages/Projects";
 
 const mocks = vi.hoisted(() => ({
+  workspaces: [{ id: 1, name: "My Workspace", member_count: 1, my_role: "owner" }],
   projects: [
-    { id: 1, name: "Sample Study Bible", description: "A demo project", translation: "ESV" },
-    { id: 2, name: "Devotional Series", description: "", translation: "NIV" },
+    { id: 1, name: "Sample Study Bible", description: "A demo project", translation: "ESV", workspace_id: 1 },
+    { id: 2, name: "Devotional Series", description: "", translation: "NIV", workspace_id: 1 },
   ],
   items: [
     { id: 1, status: "ready" },
@@ -28,6 +29,11 @@ vi.mock("../api", () => ({
   },
   authApi: {
     me: vi.fn().mockResolvedValue({ full_name: "Test", email: "t@test.ai" }),
+  },
+  workspacesApi: {
+    list: vi.fn().mockResolvedValue(mocks.workspaces),
+    get: vi.fn(),
+    create: vi.fn(),
   },
 }));
 

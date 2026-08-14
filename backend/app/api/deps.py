@@ -1,13 +1,19 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import InvalidTokenError
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.security import decode_token
 from app.db.session import get_db
 from app.models.user import User
+from app.models.workspace import WorkspaceMember
 
 bearer_scheme = HTTPBearer(auto_error=False)
+
+EDITOR_ROLES = {"owner", "admin", "member"}
+MANAGER_ROLES = {"owner", "admin"}
+OWNER_ROLE = {"owner"}
 
 
 def get_current_user(
@@ -33,3 +39,32 @@ def get_current_user(
             detail="User not found",
         )
     return user
+
+
+def get_membership(db: Session, workspace_id: int, user_id: int) -> WorkspaceMember | None:
+    return db.scalar(
+        select(WorkspaceMember).where(
+            WorkspaceMember.workspace_id == workspace_id,
+            WorkspaceMember.user_id == user_id,
+        )
+    )
+
+
+def ensure_member(db: Session, workspace_id: int, user_id: int) -> WorkspaceMember:
+    member = get_membership(db, workspace_id, user_id)
+    if member is None:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+    return member
+
+
+def ensure_role(
+    db: Session, workspace_id: int, user_id: int, allowed: set[str]
+) -> WorkspaceMember:
+    member = ensure_member(db, workspace_id, user_id)
+    if member.role not in allowed:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    return member
+
+
+def ensure_editor(db: Session, workspace_id: int, user_id: int) -> WorkspaceMember:
+    return ensure_role(db, workspace_id, user_id, EDITOR_ROLES)

@@ -6,6 +6,7 @@ from app.api.deps import get_current_user
 from app.core.security import create_access_token, hash_password, verify_password
 from app.db.session import get_db
 from app.models.user import User
+from app.models.workspace import Workspace, WorkspaceMember
 from app.schemas.user import Token, UserCreate, UserLogin, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -22,6 +23,15 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
         full_name=payload.full_name,
     )
     db.add(user)
+    db.flush()
+    workspace = Workspace(name=f"{payload.full_name}'s Workspace", owner_id=user.id)
+    db.add(workspace)
+    db.flush()
+    db.add(
+        WorkspaceMember(
+            workspace_id=workspace.id, user_id=user.id, role="owner"
+        )
+    )
     db.commit()
     db.refresh(user)
     return user

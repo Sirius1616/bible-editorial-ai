@@ -1,9 +1,12 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { isAuthenticated } from "./api/client";
 import Editor from "./pages/Editor";
+import Invite from "./pages/Invite";
 import Login from "./pages/Login";
 import ProjectDetail from "./pages/ProjectDetail";
 import Projects from "./pages/Projects";
+import Workspaces from "./pages/Workspaces";
+import WorkspaceSettings from "./pages/WorkspaceSettings";
 
 function RequireAuth({ children }) {
   if (!isAuthenticated()) return <Navigate to="/login" replace />;
@@ -15,6 +18,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/invite/:token" element={<Invite />} />
         <Route
           path="/projects"
           element={
@@ -36,6 +40,22 @@ export default function App() {
           element={
             <RequireAuth>
               <Editor />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/workspaces"
+          element={
+            <RequireAuth>
+              <Workspaces />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/workspaces/:workspaceId"
+          element={
+            <RequireAuth>
+              <WorkspaceSettings />
             </RequireAuth>
           }
         />

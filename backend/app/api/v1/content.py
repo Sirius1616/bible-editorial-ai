@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
-from app.api.v1.projects import get_owned_project
+from app.api.deps import ensure_editor, get_current_user
+from app.api.v1.projects import get_accessible_project
 from app.db.session import get_db
 from app.models.content import Comment, ContentItem, ContentVersion
 from app.models.project import Project
@@ -60,7 +60,7 @@ def list_items(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[ContentItem]:
-    get_owned_project(project_id, user, db)
+    get_accessible_project(project_id, user, db)
     return list(
         db.scalars(select(ContentItem).where(ContentItem.project_id == project_id))
     )
@@ -73,7 +73,8 @@ def create_item(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ContentItem:
-    get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
+    ensure_editor(db, project.workspace_id, user.id)
     data = payload.model_dump(exclude={"verse_start", "verse_end", "passage"})
     if payload.passage:
         data["passage"] = payload.passage
@@ -96,7 +97,7 @@ def get_item(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ContentItem:
-    project = get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
     return get_owned_item(project, item_id, db)
 
 
@@ -108,7 +109,8 @@ def update_item(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ContentItem:
-    project = get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
+    ensure_editor(db, project.workspace_id, user.id)
     item = get_owned_item(project, item_id, db)
     if payload.model_fields_set & {"verse_start", "verse_end"}:
         apply_verse_anchor(item, payload)
@@ -128,7 +130,8 @@ def delete_item(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
-    project = get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
+    ensure_editor(db, project.workspace_id, user.id)
     item = get_owned_item(project, item_id, db)
     db.delete(item)
     db.commit()
@@ -142,7 +145,8 @@ def add_version(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> ContentVersion:
-    project = get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
+    ensure_editor(db, project.workspace_id, user.id)
     item = get_owned_item(project, item_id, db)
     latest = db.scalar(
         select(ContentVersion)
@@ -172,7 +176,7 @@ def list_versions(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[ContentVersion]:
-    project = get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
     get_owned_item(project, item_id, db)
     return list(
         db.scalars(
@@ -191,7 +195,8 @@ def delete_version(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> None:
-    project = get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
+    ensure_editor(db, project.workspace_id, user.id)
     get_owned_item(project, item_id, db)
     version = db.get(ContentVersion, version_id)
     if version is None or version.content_item_id != item_id:
@@ -216,7 +221,7 @@ def diff_versions(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
-    project = get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
     get_owned_item(project, item_id, db)
     versions = list(
         db.scalars(
@@ -247,7 +252,8 @@ def add_comment(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Comment:
-    project = get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
+    ensure_editor(db, project.workspace_id, user.id)
     get_owned_item(project, item_id, db)
     if payload.parent_id is not None:
         parent = db.get(Comment, payload.parent_id)
@@ -280,7 +286,8 @@ def update_comment(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Comment:
-    project = get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
+    ensure_editor(db, project.workspace_id, user.id)
     get_owned_item(project, item_id, db)
     comment = db.get(Comment, comment_id)
     if comment is None or comment.content_item_id != item_id:
@@ -299,7 +306,7 @@ def list_comments(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[Comment]:
-    project = get_owned_project(project_id, user, db)
+    project = get_accessible_project(project_id, user, db)
     get_owned_item(project, item_id, db)
     return list(
         db.scalars(

@@ -13,6 +13,9 @@ vi.mock("../api", () => ({
   itemsApi: {
     list: vi.fn().mockResolvedValue([]),
   },
+  workspacesApi: {
+    list: vi.fn().mockResolvedValue([]),
+  },
 }));
 
 describe("auth guard", () => {

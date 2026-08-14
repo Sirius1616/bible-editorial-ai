@@ -8,6 +8,7 @@ class ProjectCreate(BaseModel):
     description: str = ""
     translation: str = "ESV"
     style_guide: str = ""
+    workspace_id: int | None = None
 
 
 class ProjectUpdate(BaseModel):
@@ -26,4 +27,6 @@ class ProjectOut(BaseModel):
     translation: str
     style_guide: str | None
     owner_id: int
+    workspace_id: int | None
+    workspace_name: str | None = None
     created_at: datetime

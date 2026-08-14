@@ -7,9 +7,11 @@ from app.db.session import SessionLocal
 from app.models.content import ContentItem, ContentVersion
 from app.models.project import Project
 from app.models.user import User
+from app.models.workspace import Workspace, WorkspaceMember
 
 DEMO_EMAIL = "demo@editorial.ai"
 DEMO_PASSWORD = "demo-password-1"
+COEDITOR_EMAIL = "coeditor@editorial.ai"
 
 
 def seed() -> None:
@@ -26,7 +28,47 @@ def seed() -> None:
             db.flush()
             print(f"Created demo user: {DEMO_EMAIL} / {DEMO_PASSWORD}")
 
-        project = db.scalar(select(Project).where(Project.owner_id == user.id))
+        coeditor = db.scalar(select(User).where(User.email == COEDITOR_EMAIL))
+        if coeditor is None:
+            coeditor = User(
+                email=COEDITOR_EMAIL,
+                hashed_password=hash_password(DEMO_PASSWORD),
+                full_name="Sarah Coeditor",
+                role="editor",
+            )
+            db.add(coeditor)
+            db.flush()
+            print(f"Created co-editor user: {COEDITOR_EMAIL} / {DEMO_PASSWORD}")
+
+        workspace = db.scalar(select(Workspace).where(Workspace.owner_id == user.id))
+        if workspace is None:
+            workspace = Workspace(name="Demo Editor's Workspace", owner_id=user.id)
+            db.add(workspace)
+            db.flush()
+            db.add(
+                WorkspaceMember(workspace_id=workspace.id, user_id=user.id, role="owner")
+            )
+            print(f"Created demo workspace: {workspace.name}")
+
+        if not db.scalar(
+            select(WorkspaceMember).where(
+                WorkspaceMember.workspace_id == workspace.id,
+                WorkspaceMember.user_id == coeditor.id,
+            )
+        ):
+            db.add(
+                WorkspaceMember(
+                    workspace_id=workspace.id, user_id=coeditor.id, role="member"
+                )
+            )
+            print(f"Invited co-editor into {workspace.name}")
+
+        project = db.scalar(
+            select(Project)
+            .where(Project.owner_id == user.id)
+            .order_by(Project.id)
+            .limit(1)
+        )
         if project is None:
             project = Project(
                 name="Sample Study Bible",
@@ -34,6 +76,7 @@ def seed() -> None:
                 translation="ESV",
                 style_guide="Write warm, pastoral, and doctrinally precise. Avoid speculation.",
                 owner_id=user.id,
+                workspace_id=workspace.id,
             )
             db.add(project)
             db.flush()

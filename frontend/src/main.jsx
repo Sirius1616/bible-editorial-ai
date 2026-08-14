@@ -6,6 +6,7 @@ import "./styles/layout.css";
 import "./styles/projects.css";
 import "./styles/auth.css";
 import "./styles/editor.css";
+import "./styles/workspaces.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

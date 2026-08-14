@@ -5,12 +5,13 @@ import {
   FolderPlus,
   Loader2,
   Plus,
+  Settings,
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
-import { itemsApi, projectsApi } from "../api";
+import { itemsApi, projectsApi, workspacesApi } from "../api";
 
 function ProjectCard({ project, items, onOpen }) {
   const total = items.length;
@@ -56,10 +57,19 @@ function ProjectCard({ project, items, onOpen }) {
   );
 }
 
+const ROLE_BADGE = {
+  owner: "badge-approved",
+  admin: "badge-type",
+  member: "badge-neutral",
+  viewer: "badge-qa",
+};
+
 export default function Projects() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [itemsByProject, setItemsByProject] = useState({});
+  const [workspaces, setWorkspaces] = useState([]);
+  const [activeWs, setActiveWs] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -69,16 +79,18 @@ export default function Projects() {
     description: "",
     translation: "ESV",
     style_guide: "",
+    workspace_id: null,
   });
 
-  async function load() {
+  async function loadProjects() {
     setLoading(true);
     setError("");
     try {
       const list = await projectsApi.list();
-      setProjects(list);
+      const visible = activeWs ? list.filter((p) => p.workspace_id === activeWs) : list;
+      setProjects(visible);
       const results = await Promise.all(
-        list.map(async (p) => {
+        visible.map(async (p) => {
           try {
             return [String(p.id), await itemsApi.list(p.id)];
           } catch {
@@ -95,15 +107,28 @@ export default function Projects() {
   }
 
   useEffect(() => {
-    load();
+    workspacesApi
+      .list()
+      .then((ws) => {
+        setWorkspaces(ws);
+        setActiveWs((cur) => cur ?? ws[0]?.id ?? null);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
   }, []);
+
+  useEffect(() => {
+    if (activeWs != null) loadProjects();
+  }, [activeWs]);
 
   async function create(e) {
     e.preventDefault();
     setCreating(true);
     setError("");
     try {
-      const project = await projectsApi.create(form);
+      const project = await projectsApi.create({ ...form, workspace_id: activeWs });
       navigate(`/projects/${project.id}`);
     } catch (err) {
       setError(err.message);
@@ -118,6 +143,7 @@ export default function Projects() {
     ready: allItems.filter((i) => i.status === "ready").length,
     archived: allItems.filter((i) => i.status === "archived").length,
   };
+  const activeWorkspace = workspaces.find((w) => w.id === activeWs);
 
   return (
     <AppLayout>
@@ -129,16 +155,40 @@ export default function Projects() {
           </div>
           <p className="sub">Manage editorial projects and track approval progress.</p>
         </div>
-        <button className="primary" onClick={() => setShowForm((s) => !s)}>
-          {showForm ? "Cancel" : (
-            <>
-              <Plus size={16} /> New project
-            </>
-          )}
-        </button>
+        <div className="row" style={{ gap: "0.6rem" }}>
+          <Link to="/workspaces" className="button-secondary">
+            <Settings size={16} /> Workspaces
+          </Link>
+          <button className="primary" onClick={() => setShowForm((s) => !s)}>
+            {showForm ? "Cancel" : (
+              <>
+                <Plus size={16} /> New project
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
+
+      {workspaces.length > 1 && (
+        <div className="workspace-tabs" role="tablist" aria-label="Workspaces">
+          {workspaces.map((w) => (
+            <button
+              key={w.id}
+              role="tab"
+              aria-selected={w.id === activeWs}
+              className={`workspace-tab${w.id === activeWs ? " active" : ""}`}
+              onClick={() => setActiveWs(w.id)}
+            >
+              {w.name}
+              <span className={`tab-count ${ROLE_BADGE[w.my_role] || "badge-neutral"}`}>
+                {w.member_count}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {showForm && (
         <div className="card">
@@ -177,6 +227,20 @@ export default function Projects() {
                 </select>
               </div>
               <div>
+                <label htmlFor="p-ws">Workspace</label>
+                <select
+                  id="p-ws"
+                  value={activeWs ?? ""}
+                  onChange={(e) => setActiveWs(Number(e.target.value))}
+                >
+                  {workspaces.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="full">
                 <label htmlFor="p-style">Style guide</label>
                 <input
                   id="p-style"
@@ -253,8 +317,9 @@ export default function Projects() {
             </span>
             <h3>No projects yet</h3>
             <p>
-              Create your first editorial project to start drafting study notes, devotionals, and
-              reference entries.
+              {activeWorkspace
+                ? `Create your first project in “${activeWorkspace.name}” to start drafting study notes, devotionals, and reference entries.`
+                : "Create your first editorial project to start drafting study notes, devotionals, and reference entries."}
             </p>
             <button className="primary" onClick={() => setShowForm(true)}>
               <Plus size={16} /> Create your first project

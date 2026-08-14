@@ -46,6 +46,9 @@ export default function AppLayout({ children, title = "Bible Editorial AI" }) {
           <Link to="/projects" className="link-button">
             Projects
           </Link>
+          <Link to="/workspaces" className="link-button">
+            Workspaces
+          </Link>
           <div className="user-chip">
             <span className="avatar">{initialsOf(user?.full_name)}</span>
             <div>

@@ -13,6 +13,34 @@ export const projectsApi = {
   create: (payload) => api("/projects", { method: "POST", body: payload }),
 };
 
+export const workspacesApi = {
+  list: () => api("/workspaces"),
+  get: (workspaceId) => api(`/workspaces/${workspaceId}`),
+  create: (name) => api("/workspaces", { method: "POST", body: { name } }),
+  update: (workspaceId, name) =>
+    api(`/workspaces/${workspaceId}`, { method: "PATCH", body: { name } }),
+  remove: (workspaceId) => api(`/workspaces/${workspaceId}`, { method: "DELETE" }),
+  members: (workspaceId) => api(`/workspaces/${workspaceId}/members`),
+  updateMember: (workspaceId, userId, role) =>
+    api(`/workspaces/${workspaceId}/members/${userId}`, { method: "PATCH", body: { role } }),
+  removeMember: (workspaceId, userId) =>
+    api(`/workspaces/${workspaceId}/members/${userId}`, { method: "DELETE" }),
+  transfer: (workspaceId, userId) =>
+    api(`/workspaces/${workspaceId}/transfer`, { method: "POST", body: { user_id: userId } }),
+  createInvite: (workspaceId, email, role) =>
+    api(`/workspaces/${workspaceId}/invites`, { method: "POST", body: { email, role } }),
+  listInvites: (workspaceId) => api(`/workspaces/${workspaceId}/invites`),
+  revokeInvite: (workspaceId, token) =>
+    api(`/workspaces/${workspaceId}/invites/${token}`, { method: "DELETE" }),
+};
+
+export const invitesApi = {
+  info: (token) => api(`/invites/${token}`),
+  accept: (token) => api("/invites/accept", { method: "POST", body: { token } }),
+  register: (token, email, password, full_name) =>
+    api(`/invites/${token}/register`, { method: "POST", body: { email, password, full_name } }),
+};
+
 export const itemsApi = {
   list: (projectId) => api(`/projects/${projectId}/items`),
   get: (projectId, itemId) => api(`/projects/${projectId}/items/${itemId}`),
