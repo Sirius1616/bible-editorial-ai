@@ -31,6 +31,14 @@ const mocks = vi.hoisted(() => ({
     change_note: "Manual edit",
     created_at: "2026-08-01T10:00:00Z",
   },
+  laterVersion: {
+    id: 7,
+    content_item_id: 10,
+    version_number: 3,
+    body: "Later draft.",
+    change_note: "draft two",
+    created_at: "2026-08-01T11:00:00Z",
+  },
 }));
 
 vi.mock("../api", () => ({
@@ -43,6 +51,7 @@ vi.mock("../api", () => ({
     get: vi.fn().mockResolvedValue(mocks.item),
     versions: vi.fn().mockResolvedValue([mocks.version]),
     addVersion: vi.fn().mockResolvedValue(mocks.savedVersion),
+    deleteVersion: vi.fn().mockResolvedValue(undefined),
     comments: vi.fn().mockResolvedValue([]),
     history: vi.fn().mockResolvedValue([]),
     addComment: vi.fn(),
@@ -92,5 +101,29 @@ describe("Editor save-version happy path", () => {
       });
     });
     expect(await screen.findByText("Saved")).toBeInTheDocument();
+  });
+
+  it("deletes a version after confirmation and reloads the list", async () => {
+    const user = userEvent.setup();
+    const { itemsApi } = await import("../api");
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    itemsApi.versions
+      .mockReset()
+      .mockResolvedValueOnce([mocks.version, mocks.laterVersion])
+      .mockResolvedValue([mocks.version]);
+
+    renderEditor();
+    await screen.findByRole("heading", { name: "Faith and Works" });
+    expect(screen.getByText("Later draft.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Delete version v3" }));
+
+    await waitFor(() => {
+      expect(itemsApi.deleteVersion).toHaveBeenCalledWith("1", "10", 7);
+    });
+    expect(await screen.findByText("Version v3 deleted.")).toBeInTheDocument();
+    expect(screen.queryByText("Later draft.")).not.toBeInTheDocument();
+    confirmSpy.mockRestore();
   });
 });

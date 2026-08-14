@@ -453,7 +453,6 @@
 .version-item .version-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
 }
 
@@ -476,6 +475,26 @@
 .version-date {
   font-size: 0.74rem;
   color: var(--faint);
+  margin-left: auto;
+}
+
+.version-item .version-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: 0.2rem;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--faint);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.version-item .version-delete:hover:not(:disabled) {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: transparent;
 }
 
 .comment-item {

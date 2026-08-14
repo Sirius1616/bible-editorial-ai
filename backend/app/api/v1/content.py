@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -181,6 +181,30 @@ def list_versions(
             .order_by(ContentVersion.version_number)
         )
     )
+
+
+@router.delete("/{item_id}/versions/{version_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_version(
+    project_id: int,
+    item_id: int,
+    version_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    project = get_owned_project(project_id, user, db)
+    get_owned_item(project, item_id, db)
+    version = db.get(ContentVersion, version_id)
+    if version is None or version.content_item_id != item_id:
+        raise HTTPException(status_code=404, detail="Version not found")
+    count = db.scalar(
+        select(func.count())
+        .select_from(ContentVersion)
+        .where(ContentVersion.content_item_id == item_id)
+    )
+    if count <= 1:
+        raise HTTPException(status_code=400, detail="Cannot delete the only version")
+    db.delete(version)
+    db.commit()
 
 
 @router.get("/{item_id}/versions/diff", response_model=VersionDiffOut)

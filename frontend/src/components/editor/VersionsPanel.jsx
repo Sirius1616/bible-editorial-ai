@@ -1,8 +1,8 @@
-import { History } from "lucide-react";
+import { History, Trash2 } from "lucide-react";
 import { formatDate } from "../../lib/format";
 
 export default function VersionsPanel({ editor }) {
-  const { versions, selected, selectVersion } = editor;
+  const { versions, selected, selectVersion, deleteVersion } = editor;
 
   return (
     <div className="editor-panel">
@@ -27,6 +27,17 @@ export default function VersionsPanel({ editor }) {
               <div className="version-meta">
                 <span className="version-no">v{v.version_number}</span>
                 <span className="version-date">{formatDate(v.created_at)}</span>
+                <button
+                  className="icon-button version-delete"
+                  title={`Delete version v${v.version_number}`}
+                  aria-label={`Delete version v${v.version_number}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteVersion(v);
+                  }}
+                >
+                  <Trash2 size={13} />
+                </button>
               </div>
               <div className="version-note">{v.change_note || "No note"}</div>
             </div>

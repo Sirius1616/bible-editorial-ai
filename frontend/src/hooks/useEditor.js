@@ -352,6 +352,19 @@ export default function useEditor(projectId, itemId) {
     }
   }
 
+  async function deleteVersion(version) {
+    if (!window.confirm(`Delete version v${version.version_number}? This cannot be undone.`)) return;
+    setError("");
+    setInfo("");
+    try {
+      await itemsApi.deleteVersion(projectId, itemId, version.id);
+      await load();
+      setInfo(`Version v${version.version_number} deleted.`);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   async function toggleResolve(comment) {
     setError("");
     try {
@@ -420,6 +433,7 @@ export default function useEditor(projectId, itemId) {
     addComment,
     submitReply,
     toggleResolve,
+    deleteVersion,
     selectVersion,
     setBody,
     setChangeNote,

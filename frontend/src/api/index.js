@@ -21,6 +21,8 @@ export const itemsApi = {
   update: (projectId, itemId, payload) =>
     api(`/projects/${projectId}/items/${itemId}`, { method: "PATCH", body: payload }),
   versions: (projectId, itemId) => api(`/projects/${projectId}/items/${itemId}/versions`),
+  deleteVersion: (projectId, itemId, versionId) =>
+    api(`/projects/${projectId}/items/${itemId}/versions/${versionId}`, { method: "DELETE" }),
   diffVersions: (projectId, itemId, fromVersion, toVersion) =>
     api(
       `/projects/${projectId}/items/${itemId}/versions/diff?from_version=${fromVersion}&to_version=${toVersion}`,
