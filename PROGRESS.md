@@ -169,7 +169,9 @@ in parallel internally; phases run in order because later phases depend on earli
     `ensure_editor` (owner/admin/member) gates project/item mutations, so `viewer` is read-only
   - Invite flow ✅: invite-by-email → join link (`/invite/{token}`), accept while logged in,
     or register-and-join via token; roles applied on accept; duplicate invite → 409,
-    revoke, expiry (7-day default)
+    revoke, expiry (7-day default). **Note:** join link is shared manually for now (copy button
+    in the UI); actual email delivery of invites is deferred to n8n — part of #23/#40, no SMTP
+    built in #36 to avoid a second email channel that n8n would supersede
   - Workspace management ✅: create/rename/delete (owner only, blocked while it has projects),
     member list, role changes, member removal, ownership transfer (previous owner becomes admin)
   - Frontend ✅: workspace switcher on the Projects page (project create picks the workspace),
