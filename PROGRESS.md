@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-14 — #21 (project-level roles & permissions) done; #36 (multi-tenant workspaces + invites) done; design polish + dark/light mode done.
+> **Updated:** 2026-08-17 — comment highlight navigation, structured export format, #21 DB dockerised.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -288,6 +288,8 @@ uv run pytest                            # backend/tests, 57 passing
 
 ## Git history (recent)
 
+- `295b413` feat: bidirectional comment highlight navigation — auto-activate annotations, click comment to scroll to highlight
+- `1b22c81` feat: structured export format with metadata, footnotes and cross-refs
 - `ab7892d` feat: project-level roles & permissions — per-project member roles, permission-gated endpoints, member management UI, read-only editor for restricted roles (#21)
 - `958e8c9` docs: note invite email delivery deferred to n8n (#23/#40)
 - `a1e98eb` docs: record #36 commit hash in PROGRESS.md
