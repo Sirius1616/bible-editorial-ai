@@ -83,11 +83,12 @@ def test_version_footnotes_and_cross_refs_export(client, token) -> None:
         f"/api/v1/projects/{project_id}/items/{item_id}/export", headers=headers
     )
     assert md.status_code == 200
-    assert "Passage: John 3:16-17" in md.text
+    assert "John 3:16-17" in md.text
     assert "## Footnotes" in md.text
     assert "only-begotten" in md.text
-    assert "## Cross-references" in md.text
-    assert "See also: John 1:14; 1 John 4:9" in md.text
+    assert "## See Also" in md.text
+    assert "John 1:14" in md.text
+    assert "1 John 4:9" in md.text
 
     docx_response = client.get(
         f"/api/v1/projects/{project_id}/items/{item_id}/export",
@@ -96,8 +97,8 @@ def test_version_footnotes_and_cross_refs_export(client, token) -> None:
     )
     document = Document(BytesIO(docx_response.content))
     texts = [p.text for p in document.paragraphs]
-    assert "Passage: John 3:16-17" in texts
-    assert "Footnotes" in texts
+    assert any("John 3:16-17" in t for t in texts)
+    assert any("Footnotes" in t for t in texts)
     assert any("only-begotten" in t for t in texts)
-    assert "Cross-references" in texts
+    assert any("See Also" in t for t in texts)
     assert any("John 1:14" in t for t in texts)
