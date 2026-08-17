@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { itemsApi, projectsApi } from "../api";
 import { anchorLabel } from "../lib/annotations";
 import { ALLOWED_TRANSITIONS, STATUS_LABELS } from "../workflow";
@@ -110,6 +110,15 @@ export default function useEditor(projectId, itemId) {
   useEffect(() => {
     load();
   }, [projectId, itemId]);
+
+  const hasTextAnchors = useMemo(
+    () => comments.some((c) => c.anchor_type === "text" && !c.parent_id),
+    [comments],
+  );
+
+  useEffect(() => {
+    if (hasTextAnchors) setAnnotationsOn(true);
+  }, [hasTextAnchors]);
 
   function flashSaved() {
     setSaved(true);

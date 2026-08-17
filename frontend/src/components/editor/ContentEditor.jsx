@@ -2,7 +2,6 @@ import {
   BookOpenCheck,
   Gauge,
   Loader2,
-  MessageSquare,
   Save,
   Sparkles,
 } from "lucide-react";
@@ -23,7 +22,6 @@ export default function ContentEditor({ editor }) {
     crossRefsText,
     setCrossRefsText,
     annotationsOn,
-    setAnnotationsOn,
     styleMarksOn,
     styleResult,
     styleLoading,
@@ -49,14 +47,6 @@ export default function ContentEditor({ editor }) {
           <Sparkles size={15} /> Content editor
         </h2>
         <div className="row" style={{ gap: "0.4rem" }}>
-          <button
-            className={annotationsOn ? "accent" : undefined}
-            onClick={() => setAnnotationsOn((s) => !s)}
-            title="Toggle inline comment markers"
-          >
-            <MessageSquare size={14} />
-            {annotationsOn ? "Editing" : "Annotate"}
-          </button>
           <button
             className={styleMarksOn ? "accent" : undefined}
             onClick={checkStyle}

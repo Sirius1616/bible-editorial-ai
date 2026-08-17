@@ -5,6 +5,7 @@ export default function CommentCard({
   comment,
   onResolve,
   onReply,
+  onClick,
   replyOpen,
   replyBody,
   setReplyBody,
@@ -14,10 +15,14 @@ export default function CommentCard({
     comment.anchor_type === "verse" && comment.anchor_start
       ? comment.anchor_start
       : comment.anchor_text
-        ? `“${comment.anchor_text}”`
+        ? `\u201c${comment.anchor_text}\u201d`
         : null;
   return (
-    <div className={`comment-item ${comment.resolved ? "resolved" : ""}`}>
+    <div
+      className={`comment-item ${comment.resolved ? "resolved" : ""}`}
+      onClick={onClick}
+      style={onClick ? { cursor: "pointer" } : undefined}
+    >
       <div className="comment-meta">
         <span className="comment-author">
           <span className="avatar" style={{ width: "24px", height: "24px", fontSize: "0.65rem" }}>

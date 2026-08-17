@@ -7,6 +7,8 @@ export default function CommentsPanel({ editor }) {
     project,
     comments,
     activeCommentId,
+    setActiveCommentId,
+    setAnnotationsOn,
     toggleResolve,
     replyTo,
     setReplyTo,
@@ -24,6 +26,14 @@ export default function CommentsPanel({ editor }) {
     setVAnchor,
   } = editor;
   const canPost = canComment(project?.my_role);
+
+  function focusComment(comment) {
+    if (comment.anchor_type === "text") setAnnotationsOn(true);
+    setActiveCommentId(comment.id);
+    document
+      .querySelector(".annotations-view, .editor-textarea")
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 
   return (
     <div className="comments-panel" id="comments-panel">
@@ -52,6 +62,7 @@ export default function CommentsPanel({ editor }) {
                       setReplyTo(replyTo === c.id ? null : c.id);
                       setReplyBody("");
                     } : null}
+                    onClick={c.anchor_type === "text" ? () => focusComment(c) : undefined}
                     replyOpen={replyTo === c.id}
                     replyBody={replyBody}
                     setReplyBody={setReplyBody}

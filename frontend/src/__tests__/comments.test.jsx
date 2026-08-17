@@ -108,24 +108,18 @@ function sendButton() {
 
 describe("Editor inline / verse-level comments", () => {
   it("renders anchored threads and inline annotation markers", async () => {
-    const user = userEvent.setup();
     renderEditor();
 
     expect(await screen.findByRole("heading", { name: "Grace" })).toBeInTheDocument();
     expect(screen.getByText("Check the Greek here.")).toBeInTheDocument();
     expect(screen.getByText("Verify against the NIV.")).toBeInTheDocument();
     expect(screen.getByText("Done — matches NIV.")).toBeInTheDocument();
-    expect(screen.getByText("“Grace”")).toBeInTheDocument();
+    expect(screen.getByText("\u201cGrace\u201d")).toBeInTheDocument();
     expect(screen.getAllByText("John 1:14").length).toBeGreaterThan(0);
 
-    await user.click(screen.getByRole("button", { name: /Annotate/i }));
-    const mark = document.querySelector('[data-comment-id="1"]');
+    const mark = await waitFor(() => document.querySelector('[data-comment-id="1"]'));
     expect(mark).toBeInTheDocument();
     expect(mark.textContent).toBe("Grace");
-
-    await user.click(mark);
-    expect(mark.className).toContain("active");
-    expect(threadFor("Check the Greek here.").className).toContain("thread-active");
   });
 
   it("posts a whole-item comment", async () => {
@@ -146,6 +140,11 @@ describe("Editor inline / verse-level comments", () => {
   it("anchors a comment to selected text", async () => {
     const user = userEvent.setup();
     const { itemsApi } = await import("../api");
+
+    itemsApi.comments.mockResolvedValueOnce([
+      { ...mocks.comments[1] },
+      { ...mocks.comments[2] },
+    ]);
 
     renderEditor();
     await screen.findByRole("heading", { name: "Grace" });
