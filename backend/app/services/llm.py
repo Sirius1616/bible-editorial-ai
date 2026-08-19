@@ -5,7 +5,8 @@ import httpx
 
 from app.core.config import settings
 
-OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
+ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
+ANTHROPIC_MODEL = "claude-3-5-haiku-20241022"
 
 CONTENT_TYPE_GUIDANCE = {
     "study_note": (
@@ -70,44 +71,53 @@ def build_mock_draft(
     return body
 
 
-async def generate_draft(
-    passage: str, title: str, content_type: str, style_guide: str = "", translation: str = ""
-) -> tuple[str, bool]:
-    if not settings.OPENAI_API_KEY:
-        return build_mock_draft(passage, title, content_type, style_guide), True
-
-    prompt = build_draft_prompt(passage, title, content_type, style_guide, translation)
+async def _call_anthropic(prompt: str, system: str = "", max_tokens: int = 500) -> str:
+    headers = {
+        "x-api-key": settings.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+    }
+    body: dict = {
+        "model": ANTHROPIC_MODEL,
+        "max_tokens": max_tokens,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    if system:
+        body["system"] = system
 
     try:
         async with httpx.AsyncClient(timeout=60) as client:
-            response = await client.post(
-                OPENAI_CHAT_URL,
-                headers={"Authorization": f"Bearer {settings.OPENAI_API_KEY}"},
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 500,
-                },
-            )
+            response = await client.post(ANTHROPIC_URL, headers=headers, json=body)
             response.raise_for_status()
             data = response.json()
     except httpx.HTTPStatusError as exc:
         status_code = exc.response.status_code
         if status_code == 401:
             raise RuntimeError(
-                "OpenAI rejected the API key (401). Check OPENAI_API_KEY."
+                "Anthropic rejected the API key (401). Check ANTHROPIC_API_KEY."
             ) from exc
         if status_code == 429:
             raise RuntimeError(
-                "OpenAI rate limit reached (429). Try again in a moment."
+                "Anthropic rate limit reached (429). Try again in a moment."
             ) from exc
         raise RuntimeError(
-            f"OpenAI returned an error ({status_code}). Try again later."
+            f"Anthropic returned an error ({status_code}). Try again later."
         ) from exc
     except httpx.RequestError as exc:
-        raise RuntimeError("Could not reach OpenAI. Check your network connection.") from exc
+        raise RuntimeError("Could not reach Anthropic. Check your network connection.") from exc
 
-    return data["choices"][0]["message"]["content"].strip(), False
+    return data["content"][0]["text"].strip()
+
+
+async def generate_draft(
+    passage: str, title: str, content_type: str, style_guide: str = "", translation: str = ""
+) -> tuple[str, bool]:
+    if not settings.ANTHROPIC_API_KEY:
+        return build_mock_draft(passage, title, content_type, style_guide), True
+
+    prompt = build_draft_prompt(passage, title, content_type, style_guide, translation)
+    text = await _call_anthropic(prompt)
+    return text, False
 
 
 STYLE_RULES: list[tuple[str, str, int, str]] = [
@@ -192,41 +202,12 @@ def build_mock_style_issues(body: str, style_guide: str) -> dict:
 async def check_style_guide(
     body: str, style_guide: str = ""
 ) -> tuple[dict, bool]:
-    if not settings.OPENAI_API_KEY:
+    if not settings.ANTHROPIC_API_KEY:
         return build_mock_style_issues(body, style_guide), True
 
     prompt = build_style_check_prompt(body, style_guide)
+    content = await _call_anthropic(prompt)
 
-    try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            response = await client.post(
-                OPENAI_CHAT_URL,
-                headers={"Authorization": f"Bearer {settings.OPENAI_API_KEY}"},
-                json={
-                    "model": "gpt-4o-mini",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "response_format": {"type": "json_object"},
-                },
-            )
-            response.raise_for_status()
-            data = response.json()
-    except httpx.HTTPStatusError as exc:
-        status_code = exc.response.status_code
-        if status_code == 401:
-            raise RuntimeError(
-                "OpenAI rejected the API key (401). Check OPENAI_API_KEY."
-            ) from exc
-        if status_code == 429:
-            raise RuntimeError(
-                "OpenAI rate limit reached (429). Try again in a moment."
-            ) from exc
-        raise RuntimeError(
-            f"OpenAI returned an error ({status_code}). Try again later."
-        ) from exc
-    except httpx.RequestError as exc:
-        raise RuntimeError("Could not reach OpenAI. Check your network connection.") from exc
-
-    content = data["choices"][0]["message"]["content"].strip()
     try:
         parsed = json.loads(content)
     except json.JSONDecodeError as exc:
@@ -234,7 +215,7 @@ async def check_style_guide(
         end = content.rfind("}")
         if start == -1 or end <= start:
             raise RuntimeError(
-                "OpenAI returned an unparsable style-check response. Try again."
+                "Anthropic returned an unparsable style-check response. Try again."
             ) from exc
         parsed = json.loads(content[start : end + 1])
     issues = parsed.get("issues", []) if isinstance(parsed, dict) else []

@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     SECRET_KEY: str = "change-me-in-production-change-me-in-production-1234"
     DATABASE_URL: str = "postgresql+psycopg://editorial:editorial@localhost:5432/editorial"
-    OPENAI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
     BIBLE_API_KEY: str = ""
     BIBLE_TRANSLATIONS: str = "ESV,NIV,KJV,NASB,NLT"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7

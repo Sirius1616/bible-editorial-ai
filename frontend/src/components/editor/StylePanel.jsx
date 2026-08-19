@@ -24,7 +24,7 @@ export default function StylePanel({ editor }) {
         <div>
           <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.5rem" }}>
             {styleResult.demo
-              ? "Demo rules (add OPENAI_API_KEY for AI review)."
+              ? "Demo rules (add ANTHROPIC_API_KEY for AI review)."
               : "AI review against the project style guide."}
           </p>
           <div>

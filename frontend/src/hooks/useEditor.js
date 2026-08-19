@@ -222,7 +222,7 @@ export default function useEditor(projectId, itemId) {
       setSelected(v);
       setInfo(
         v.change_note?.includes("demo mode")
-          ? "AI draft generated in demo mode (no OPENAI_API_KEY set). Add a key in backend/.env for live drafts."
+          ? "AI draft generated in demo mode (no ANTHROPIC_API_KEY set). Add a key in backend/.env for live drafts."
           : "AI draft generated and saved as a new version."
       );
     } catch (err) {
