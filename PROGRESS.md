@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-17 — comment highlight navigation, structured export format, #21 DB dockerised.
+> **Updated:** 2026-08-17 — switched LLM from OpenAI to Anthropic (Claude 3.5 Haiku), comment highlights, structured exports.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -288,6 +288,7 @@ uv run pytest                            # backend/tests, 57 passing
 
 ## Git history (recent)
 
+- `1361211` feat: switch LLM from OpenAI to Anthropic (Claude 3.5 Haiku)
 - `295b413` feat: bidirectional comment highlight navigation — auto-activate annotations, click comment to scroll to highlight
 - `1b22c81` feat: structured export format with metadata, footnotes and cross-refs
 - `ab7892d` feat: project-level roles & permissions — per-project member roles, permission-gated endpoints, member management UI, read-only editor for restricted roles (#21)
