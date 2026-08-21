@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-17 — switched LLM from OpenAI to Anthropic (Claude 3.5 Haiku), comment highlights, structured exports.
+> **Updated:** 2026-08-21 — LLM integration rebuild in progress (user learning exercise), README rewrite for portfolio.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -118,11 +118,11 @@ in parallel internally; phases run in order because later phases depend on earli
 
 - ✅ #24 Style-guide adherence checking: `POST .../items/{id}/style-check` (optional `body`,
   defaults to latest version) → score 0-100 + issues (snippet/reason/severity). AI mode returns
-  strict JSON via OpenAI; demo mode uses rule-based mock (first-person, intensifiers, wordiness,
-  placeholders, exclamations). Frontend: "Style check" button in the editor, score badge + issue
-  cards panel, inline `<mark>` highlights with severity colors and a toggle. 5 backend tests + 2
-  Vitest tests (29 pytest / 14 frontend passing), lint 0 errors, build clean, live Playwright
-  smoke verified (score 69/100, 3 flagged issues, 2 inline marks).
+  strict JSON via Anthropic Claude 3.5 Haiku; demo mode uses rule-based mock (first-person,
+  intensifiers, wordiness, placeholders, exclamations). Frontend: "Style check" button in the
+  editor, score badge + issue cards panel, inline `<mark>` highlights with severity colors and a
+  toggle. **LLM integration currently being rebuilt as user learning exercise** — `generate_draft`
+  API call complete, `check_style_guide` next. 3 tests skipped during rebuild.
 - ✅ #27 Translation comparison sidebar: `GET .../items/{item_id}/translations` uses the item's
   verse anchor → KJV/WEB (public domain) always, plus ESV/NIV/NASB/NLT slots. Real mode fetches
   all five via api.bible (Scripture API) when `BIBLE_API_KEY` is set; demo mode serves a bundled
@@ -266,7 +266,7 @@ parallelize freely (they don't block each other).
 
 ```bash
 # 1. Env
-cp .env.example .env   # then edit DATABASE_URL/OPENAI_API_KEY
+cp .env.example .env   # then edit DATABASE_URL/ANTHROPIC_API_KEY
 
 # 2. Database (PostgreSQL must be running — or via Docker)
 docker compose up -d db
@@ -288,6 +288,8 @@ uv run pytest                            # backend/tests, 57 passing
 
 ## Git history (recent)
 
+- `7233674` docs: rewrite README for portfolio — features, tech stack, getting started, API
+- `358e513` feat: rebuild generate_draft with Anthropic API call + skip LLM tests during rebuild
 - `1361211` feat: switch LLM from OpenAI to Anthropic (Claude 3.5 Haiku)
 - `295b413` feat: bidirectional comment highlight navigation — auto-activate annotations, click comment to scroll to highlight
 - `1b22c81` feat: structured export format with metadata, footnotes and cross-refs
