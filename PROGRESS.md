@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-21 — LLM integration rebuild in progress (user learning exercise), README rewrite for portfolio.
+> **Updated:** 2026-08-21 — LLM integration fully rebuilt (generate_draft + check_style_guide), STYLE_RULES mock restored, all 57 tests passing.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -121,8 +121,8 @@ in parallel internally; phases run in order because later phases depend on earli
   strict JSON via Anthropic Claude 3.5 Haiku; demo mode uses rule-based mock (first-person,
   intensifiers, wordiness, placeholders, exclamations). Frontend: "Style check" button in the
   editor, score badge + issue cards panel, inline `<mark>` highlights with severity colors and a
-  toggle. **LLM integration currently being rebuilt as user learning exercise** — `generate_draft`
-  API call complete, `check_style_guide` next. 3 tests skipped during rebuild.
+  toggle. LLM integration rebuilt from scratch (user learning exercise) — 57 backend tests
+  passing, 0 skipped.
 - ✅ #27 Translation comparison sidebar: `GET .../items/{item_id}/translations` uses the item's
   verse anchor → KJV/WEB (public domain) always, plus ESV/NIV/NASB/NLT slots. Real mode fetches
   all five via api.bible (Scripture API) when `BIBLE_API_KEY` is set; demo mode serves a bundled
@@ -288,6 +288,8 @@ uv run pytest                            # backend/tests, 57 passing
 
 ## Git history (recent)
 
+- `8e541e3` feat: restore STYLE_RULES mock, unskip all 3 LLM tests — 57/57 passing
+- `58b51ce` feat: rebuild check_style_guide with Anthropic API call — JSON response parsing, error handling
 - `7233674` docs: rewrite README for portfolio — features, tech stack, getting started, API
 - `358e513` feat: rebuild generate_draft with Anthropic API call + skip LLM tests during rebuild
 - `1361211` feat: switch LLM from OpenAI to Anthropic (Claude 3.5 Haiku)
