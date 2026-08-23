@@ -1,5 +1,6 @@
 from app.core.config import settings
 import httpx
+import json
 
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_MODEL = "claude-3-5-haiku-20241022"
@@ -70,6 +71,22 @@ async def generate_draft(
     return text, False
 
 
+def build_style_check_prompt(body: str, style_guide: str) -> str:
+    return f"""You are an editorial style checker for a Bible publishing house.
+    
+    Review the following manuscript against these style rules:
+    {style_guide}
+
+    Manuscript:
+    {body}
+
+    check for violations and return ONLY a JSON object with this exact format:
+    {{"score": 0-100, "issues": [{{"snippet": "the offending text", "reason": "why it violates",
+    "severity": "high|medium|low"}}]}}
+
+    Score 100 means perfect. Deduct for each violation. Return ONLY the JSON, nothing else"""
+
+
 async def check_style_guide(
     body: str, style_guide: str = ""
 ) -> tuple[dict, bool]:
@@ -79,6 +96,31 @@ async def check_style_guide(
     """
     if not settings.ANTHROPIC_API_KEY:
         return build_mock_style_issues(body, style_guide), True
+    prompt = build_style_check_prompt(body=body, style_guide=style_guide)
+    async with httpx.AsyncClient(timeout=60) as client:
+        try:
+            response = await client.post(
+                url = ANTHROPIC_URL,
+                headers = {
+                    "x-api-key": settings.ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json"
+                },
+                json = {
+                    "model": ANTHROPIC_MODEL,
+                    "max_tokens": 500,
+                    "messages": [{"role": "user", "content": prompt}]
+                }
+            )
+            response.raise_for_status()
+            data = response.json()
+            text = data["content"][0]["text"]
+            result = json.loads(text)
+        except httpx.HTTPStatusError as e:
+            print(f"API error: {e.response.status_code}, {e.response.text}")
+            return {"score": 0, "issues": ["API error"]}, True
+        except httpx.RequestError as e:
+            print(f"Network Error: {e}")
+            return {"score": 0, "issues": ["Request error"]}, True
+    return result, False
 
-    # TODO: build prompt, call Anthropic, parse JSON response
-    return {"score": 0, "issues": []}, False
