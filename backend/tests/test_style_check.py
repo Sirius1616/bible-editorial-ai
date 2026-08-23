@@ -25,7 +25,6 @@ def _create_item(client, token: str, project_id: int) -> int:
     return response.json()["id"]
 
 
-@pytest.mark.skip(reason="Rebuilding LLM integration — mock style rules not yet implemented")
 def test_style_check_uses_latest_version_body(client, token) -> None:
     headers = auth_header(token)
     project_id = _create_project(client, token)
@@ -80,7 +79,6 @@ def test_style_check_missing_item_is_404(client, token) -> None:
     assert response.status_code == 404
 
 
-@pytest.mark.skip(reason="Rebuilding LLM integration")
 def test_build_style_check_prompt_includes_context() -> None:
     from app.services.llm import build_style_check_prompt
 

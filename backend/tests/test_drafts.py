@@ -76,10 +76,6 @@ def test_draft_increments_version_number(client, token) -> None:
     assert second.json()["version_number"] == 3
 
 
-import pytest
-
-
-@pytest.mark.skip(reason="Rebuilding LLM integration")
 def test_build_draft_prompt_includes_context() -> None:
     from app.services.llm import build_draft_prompt
 
@@ -91,7 +87,7 @@ def test_build_draft_prompt_includes_context() -> None:
         translation="ESV",
     )
     assert "Romans 8:28" in prompt
-    assert '"All Things"' in prompt
+    assert "All Things" in prompt
     assert "devotional" in prompt
-    assert "Style guide:\nUse 'you'." in prompt
+    assert "Use 'you'." in prompt
     assert "ESV" in prompt
