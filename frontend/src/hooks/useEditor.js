@@ -54,6 +54,7 @@ export default function useEditor(projectId, itemId) {
   const [drafting, setDrafting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [members, setMembers] = useState([]);
   const savedTimer = useRef(null);
 
   function selectVersion(v) {
@@ -78,6 +79,10 @@ export default function useEditor(projectId, itemId) {
       setVersions(v);
       setComments(c);
       setHistory(h);
+      if (p.my_role === "admin" || p.my_role === "editor") {
+        const ms = await projectsApi.members(projectId);
+        setMembers(ms);
+      }
       setNextStatus((ALLOWED_TRANSITIONS[item.status] ?? [])[0] ?? "");
       setAnchor({
         book: item.verse_start?.book ?? "",
@@ -387,6 +392,16 @@ export default function useEditor(projectId, itemId) {
     }
   }
 
+  async function assignItem(assigneeId) {
+    setError("");
+    try {
+      const updated = await itemsApi.update(projectId, itemId, { assignee_id: assigneeId });
+      setItem(updated);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   return {
     project,
     item,
@@ -448,6 +463,8 @@ export default function useEditor(projectId, itemId) {
     toggleResolve,
     deleteVersion,
     selectVersion,
+    assignItem,
+    members,
     setBody,
     setChangeNote,
     setFootnotesText,

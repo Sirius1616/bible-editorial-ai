@@ -1,7 +1,7 @@
-import { BookOpen, CheckCircle2, Download, Loader2 } from "lucide-react";
+import { BookOpen, CheckCircle2, Download, Loader2, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDate } from "../../lib/format";
-import { canExport, canReview } from "../../permissions";
+import { canEdit, canExport, canReview } from "../../permissions";
 import { ALLOWED_TRANSITIONS, STATUS_LABELS } from "../../workflow";
 import StatusBadge from "../ui/StatusBadge";
 
@@ -11,6 +11,8 @@ export default function EditorHeader({ editor }) {
     project,
     item,
     versions,
+    members,
+    assignItem,
     nextStatus,
     setNextStatus,
     transitioning,
@@ -54,6 +56,23 @@ export default function EditorHeader({ editor }) {
           </p>
         </div>
         <div className="actions">
+          {canEdit(role) && members.length > 0 && (
+            <span className="assign-inline">
+              <User size={15} />
+              <select
+                value={item.assignee_id ?? ""}
+                onChange={(e) => assignItem(e.target.value ? Number(e.target.value) : null)}
+                title="Assign to"
+              >
+                <option value="">Unassigned</option>
+                {members.map((m) => (
+                  <option key={m.user_id} value={m.user_id}>
+                    {m.full_name}
+                  </option>
+                ))}
+              </select>
+            </span>
+          )}
           {canExport(role) && (
             <button onClick={exportMarkdown} title="Export Markdown">
               <Download size={16} /> Export

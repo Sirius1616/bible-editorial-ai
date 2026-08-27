@@ -26,6 +26,16 @@
   gap: 0.45rem;
 }
 
+.assign-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.assign-inline select {
+  max-width: 140px;
+}
+
 .meta-line {
   display: flex;
   align-items: center;
