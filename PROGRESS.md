@@ -1,6 +1,7 @@
 # Bible Editorial AI — MVP Progress
 
 > **Updated:** 2026-08-21 — LLM integration fully rebuilt (generate_draft + check_style_guide), STYLE_RULES mock restored, all 57 tests passing.
+> **Note:** AI issues (#25 Scripture QA, #26 cross-reference consistency) deferred until paid Anthropic API key is available. LLM features work in demo/mock mode only.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
