@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-27 — Task assignment (#22) + notifications (#23) done. 69 pytest / 32 Vitest passing.
+> **Updated:** 2026-08-27 — Task assignment (#22) + notifications (#23) done. 71 pytest / 32 Vitest passing.
 > **Note:** AI issues (#25 Scripture QA, #26 cross-reference consistency) deferred until paid Anthropic API key is available. LLM features work in demo/mock mode only.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
@@ -267,10 +267,12 @@ Senior-designer review of the UI → targeted fixes for hierarchy, consistency, 
     (transition), comment notifications (add comment) — all respect "don't notify yourself"
   - Frontend ✅: notification bell in topbar with unread badge count, dropdown panel with
     notifications list, mark-read on click, mark-all-read button, auto-refresh every 30s
-  - Email via n8n ✅: deferred to #40 (n8n automations/webhooks) — the webhook infrastructure
-    will call a backend endpoint to create notifications + send email
+  - Email via n8n ✅: backend POSTs to `http://n8n:5678/webhook/send-email` (n8n "Send Email"
+    workflow `n8n/workflows/send-email.json`); n8n container receives `SMTP_*` env vars and sends
+    the email. Invite + notification emails both route through n8n. If n8n is down or SMTP unset,
+    emails are skipped (logged, non-fatal)
   - Tests ✅: 7 backend tests (CRUD lifecycle, mark read, mark all read, per-user isolation,
-    assignment creates notification, transition creates notification) — 69 pytest / 32 Vitest,
+    assignment creates notification, transition creates notification) — 71 pytest / 32 Vitest,
     lint 0 errors, build clean
 
 ### Phase 5 — Publishing, business & integrations (`priority:p5`)
