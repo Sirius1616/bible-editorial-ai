@@ -18,6 +18,7 @@ from app.models.project import Project
 from app.models.user import User
 from app.models.workspace import Invitation, Workspace, WorkspaceMember
 from app.schemas.user import Token
+from app.services.email import send_invite_email
 from app.schemas.workspace import (
     InvitationOut,
     InviteAccept,
@@ -319,6 +320,15 @@ def create_invite(
     db.add(invite)
     db.commit()
     db.refresh(invite)
+
+    invite_link = f"{settings.FRONTEND_URL}/invite/{invite.token}"
+    send_invite_email(
+        to=invite.email,
+        workspace_name=workspace.name,
+        inviter_name=user.full_name,
+        invite_link=invite_link,
+    )
+
     return _invitation_out(invite)
 
 

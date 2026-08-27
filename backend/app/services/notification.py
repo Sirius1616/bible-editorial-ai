@@ -2,7 +2,10 @@
 
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.notification import Notification
+from app.models.user import User
+from app.services.email import send_notification_email
 
 
 def create_notification(
@@ -24,4 +27,13 @@ def create_notification(
     )
     db.add(notif)
     db.flush()
+
+    if settings.email_enabled:
+        user = db.get(User, user_id)
+        if user and user.email:
+            link = None
+            if project_id and content_item_id:
+                link = f"{settings.FRONTEND_URL}/projects/{project_id}/items/{content_item_id}"
+            send_notification_email(to=user.email, message=message, link=link)
+
     return notif

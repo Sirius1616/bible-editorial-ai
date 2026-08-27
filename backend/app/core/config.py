@@ -17,6 +17,13 @@ class Settings(BaseSettings):
     INVITE_EXPIRE_MINUTES: int = 60 * 24 * 7
 
     CORS_ORIGINS: str = "http://localhost:3000"
+    FRONTEND_URL: str = "http://localhost:3000"
+
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASS: str = ""
+    SMTP_FROM: str = "noreply@bibleeditorial.ai"
 
     @property
     def cors_origins(self) -> list[str]:
@@ -25,6 +32,10 @@ class Settings(BaseSettings):
     @property
     def bible_translations(self) -> list[str]:
         return [name.strip().upper() for name in self.BIBLE_TRANSLATIONS.split(",") if name.strip()]
+
+    @property
+    def email_enabled(self) -> bool:
+        return bool(self.SMTP_HOST)
 
 
 @lru_cache
