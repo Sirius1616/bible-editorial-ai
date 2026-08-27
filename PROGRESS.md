@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-21 — LLM integration fully rebuilt (generate_draft + check_style_guide), STYLE_RULES mock restored, all 57 tests passing.
+> **Updated:** 2026-08-27 — Task assignment & workload (#22) done. 62 pytest / 32 Vitest passing.
 > **Note:** AI issues (#25 Scripture QA, #26 cross-reference consistency) deferred until paid Anthropic API key is available. LLM features work in demo/mock mode only.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
@@ -194,7 +194,7 @@ Senior-designer review of the UI → targeted fixes for hierarchy, consistency, 
 |---|-------|-----------|
 | #36 | Multi-tenancy (workspaces) + invites | — (start early, team base) ✅ |
 | #21 | Roles & permissions | #36 |
-| #22 | Task assignment & workload | #36 |
+| #22 | Task assignment & workload | #36 ✅ |
 | #23 | Notifications (in-app + email via n8n) | #22 |
 | #34 | Mentions & audit trail | #23 (audit part is standalone) |
 | #33 | Multi-step sign-off workflow | #20 + #21 |
@@ -246,6 +246,18 @@ Senior-designer review of the UI → targeted fixes for hierarchy, consistency, 
     (members card, add/change/remove, viewer hides controls) + 1 editor read-only test —
     57 pytest / 32 Vitest, lint 0 errors, build clean; migration verified end-to-end on a fresh
     Postgres (full chain `upgrade head` + backfill)
+
+- ✅ #22 Task assignment & workload — **done** (2026-08-27)
+  - Backend ✅: `assignee_id` FK on `ContentItem` → `users.id` (nullable); migration `a1b2c3d4e5f6`;
+    `validate_assignee()` ensures the assignee is a project member; `enrich_item()` populates
+    `assignee_name` on responses; schemas `Create`/`Update`/`Out` all include `assignee_id` +
+    `assignee_name`
+  - Project detail ✅: items table has Assignee and Due columns; create form includes assignee
+    dropdown (project members) and date picker for due_date
+  - Editor ✅: assignee dropdown in header with inline reassignment; due_date shown in meta line;
+    members loaded for admin/editor roles
+  - Tests ✅: 5 backend tests (create with assignee, update assignee, non-member rejected,
+    unassign, list shows assignee) — 62 pytest / 32 Vitest, lint 0 errors, build clean
 
 ### Phase 5 — Publishing, business & integrations (`priority:p5`)
 | # | Issue | Builds on |
