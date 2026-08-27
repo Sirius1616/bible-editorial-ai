@@ -91,3 +91,10 @@ export const itemsApi = {
     return res.blob();
   },
 };
+
+export const notificationsApi = {
+  list: () => api("/notifications"),
+  unreadCount: () => api("/notifications/unread-count"),
+  markRead: (id) => api(`/notifications/${id}/read`, { method: "POST" }),
+  markAllRead: () => api("/notifications/read-all", { method: "POST" }),
+};

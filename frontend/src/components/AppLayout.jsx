@@ -4,6 +4,7 @@ import { clearToken } from "../api/client";
 import { useEffect, useState } from "react";
 import { authApi } from "../api";
 import { useTheme } from "../theme";
+import NotificationBell from "./NotificationBell";
 
 function initialsOf(name) {
   return (name || "?")
@@ -51,6 +52,7 @@ export default function AppLayout({ children, title = "Bible Editorial AI" }) {
           <Link to="/workspaces" className="link-button">
             Workspaces
           </Link>
+          <NotificationBell />
           <div className="user-chip">
             <span className="avatar">{initialsOf(user?.full_name)}</span>
             <div>
