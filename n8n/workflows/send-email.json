@@ -1,0 +1,55 @@
+{
+  "name": "Send Email (backend webhook)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "send-email",
+      "webhookPath": "send-email",
+      "method": "POST",
+      "responseMode": "responseNode"
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_FROM }}",
+        "fromName": "Bible Editorial AI",
+        "toEmail": "={{ $json['to'] }}",
+        "subject": "={{ $json['subject'] }}",
+        "text": "",
+        "html": "={{ $json['html'] }}",
+        "options": {}
+      },
+      "id": "email-1",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [],
+  "active": true
+}

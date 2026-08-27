@@ -1,41 +1,39 @@
-"""Email service — sends transactional emails via SMTP."""
+"""Email service — sends transactional emails via n8n webhook."""
 
 import logging
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+
+import httpx
 
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
 
-def send_email(*, to: str, subject: str, html: str) -> bool:
+def trigger_n8n_email(*, to: str, subject: str, html: str) -> bool:
+    """POST to the n8n email webhook. n8n receives the payload and sends the email."""
     if not settings.email_enabled:
         logger.info("SMTP not configured — skipping email to %s", to)
         return False
 
-    msg = MIMEMultipart("alternative")
-    msg["From"] = settings.SMTP_FROM
-    msg["To"] = to
-    msg["Subject"] = subject
-    msg.attach(MIMEText(html, "html"))
-
+    url = f"{settings.N8N_INTERNAL_URL}/webhook/send-email"
+    payload = {
+        "to": to,
+        "subject": subject,
+        "html": html,
+    }
     try:
-        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=15) as server:
-            server.starttls()
-            if settings.SMTP_USER and settings.SMTP_PASS:
-                server.login(settings.SMTP_USER, settings.SMTP_PASS)
-            server.send_message(msg)
-        logger.info("Email sent to %s: %s", to, subject)
+        with httpx.Client(timeout=10) as client:
+            resp = client.post(url, json=payload)
+            resp.raise_for_status()
+        logger.info("n8n webhook triggered for email to %s", to)
         return True
     except Exception:
-        logger.exception("Failed to send email to %s", to)
+        logger.exception("Failed to trigger n8n email webhook for %s", to)
         return False
 
 
 def send_invite_email(*, to: str, workspace_name: str, inviter_name: str, invite_link: str) -> bool:
-    return send_email(
+    return trigger_n8n_email(
         to=to,
         subject=f"You're invited to {workspace_name} on Bible Editorial AI",
         html=f"""
@@ -61,7 +59,7 @@ def send_notification_email(*, to: str, message: str, link: str | None = None) -
     if link:
         link_html = f'<p><a href="{link}">View item</a></p>'
 
-    return send_email(
+    return trigger_n8n_email(
         to=to,
         subject="Bible Editorial AI — New notification",
         html=f"""

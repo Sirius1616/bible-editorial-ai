@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-editorial}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-editorial}
-      POSTGRES_DB: ${POSTGRES_DB:-editorial}
+      POSTGRES_DB: ${POSTGRES_DB:-editorial} 
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
@@ -49,6 +49,13 @@ services:
       - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD:-admin}
       - N8N_HOST=localhost
       - N8N_PORT=5678
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM:-noreply@bibleeditorial.ai}
+      - N8N_ENCRYPTION_KEY=demo-encryption-key-not-for-production
+      - N8N_USER_MANAGEMENT_DISABLED=true
     ports:
       - "${N8N_PORT:-5678}:5678"
     volumes:
