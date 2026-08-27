@@ -11,7 +11,7 @@ from app.api.deps import (
 from app.api.v1.projects import get_accessible_project
 from app.db.session import get_db
 from app.models.content import Comment, ContentItem, ContentVersion
-from app.models.project import Project
+from app.models.project import Project, ProjectMember
 from app.models.user import User
 from app.schemas.content import (
     CommentCreate,
@@ -36,6 +36,34 @@ def flatten_verse_anchor(anchor) -> dict:
         "chapter": anchor.chapter,
         "verse": anchor.verse,
     }
+
+
+def validate_assignee(project_id: int, assignee_id: int | None, db: Session) -> None:
+    if assignee_id is None:
+        return
+    member = db.scalar(
+        select(ProjectMember).where(
+            ProjectMember.project_id == project_id,
+            ProjectMember.user_id == assignee_id,
+        )
+    )
+    if member is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Assignee must be a project member",
+        )
+
+
+def enrich_item(item: ContentItem, db: Session) -> ContentItemOut:
+    out = ContentItemOut.model_validate(item)
+    if item.assignee_id:
+        user = db.get(User, item.assignee_id)
+        out.assignee_name = user.full_name if user else None
+    return out
+
+
+def enrich_items(items: list[ContentItem], db: Session) -> list[ContentItemOut]:
+    return [enrich_item(item, db) for item in items]
 
 
 def apply_verse_anchor(item: ContentItem, payload) -> None:
@@ -64,11 +92,12 @@ def list_items(
     project_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> list[ContentItem]:
+) -> list[ContentItemOut]:
     get_accessible_project(project_id, user, db)
-    return list(
+    items = list(
         db.scalars(select(ContentItem).where(ContentItem.project_id == project_id))
     )
+    return enrich_items(items, db)
 
 
 @router.post("", response_model=ContentItemOut, status_code=status.HTTP_201_CREATED)
@@ -77,9 +106,10 @@ def create_item(
     payload: ContentItemCreate,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> ContentItem:
+) -> ContentItemOut:
     project = get_accessible_project(project_id, user, db)
     ensure_project_role(db, project, user, PROJECT_EDIT_ROLES)
+    validate_assignee(project_id, payload.assignee_id, db)
     data = payload.model_dump(exclude={"verse_start", "verse_end", "passage"})
     if payload.passage:
         data["passage"] = payload.passage
@@ -92,7 +122,7 @@ def create_item(
     db.add(ContentVersion(content_item_id=item.id, version_number=1, body="", created_by=user.id))
     db.commit()
     db.refresh(item)
-    return item
+    return enrich_item(item, db)
 
 
 @router.get("/{item_id}", response_model=ContentItemOut)
@@ -101,9 +131,10 @@ def get_item(
     item_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> ContentItem:
+) -> ContentItemOut:
     project = get_accessible_project(project_id, user, db)
-    return get_owned_item(project, item_id, db)
+    item = get_owned_item(project, item_id, db)
+    return enrich_item(item, db)
 
 
 @router.patch("/{item_id}", response_model=ContentItemOut)
@@ -113,10 +144,12 @@ def update_item(
     payload: ContentItemUpdate,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> ContentItem:
+) -> ContentItemOut:
     project = get_accessible_project(project_id, user, db)
     ensure_project_role(db, project, user, PROJECT_EDIT_ROLES)
     item = get_owned_item(project, item_id, db)
+    if "assignee_id" in payload.model_fields_set:
+        validate_assignee(project_id, payload.assignee_id, db)
     if payload.model_fields_set & {"verse_start", "verse_end"}:
         apply_verse_anchor(item, payload)
     for field, value in payload.model_dump(exclude_unset=True, exclude={"verse_start", "verse_end"}).items():
@@ -125,7 +158,7 @@ def update_item(
         item.passage = item.verse_label() or ""
     db.commit()
     db.refresh(item)
-    return item
+    return enrich_item(item, db)
 
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)

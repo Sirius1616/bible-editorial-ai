@@ -32,7 +32,9 @@ def _create_item(client, token: str, project_id: int, content_type: str = "study
     return response.json()["id"]
 
 
-def test_draft_demo_mode_study_note(client, token) -> None:
+def test_draft_demo_mode_study_note(client, token, monkeypatch) -> None:
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "ANTHROPIC_API_KEY", "")
     headers = auth_header(token)
     project_id = _create_project_with_style_guide(client, token)
     item_id = _create_item(client, token, project_id)
@@ -47,7 +49,9 @@ def test_draft_demo_mode_study_note(client, token) -> None:
     assert version["change_note"] == "AI-generated draft (demo mode)"
 
 
-def test_draft_demo_mode_devotional(client, token) -> None:
+def test_draft_demo_mode_devotional(client, token, monkeypatch) -> None:
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "ANTHROPIC_API_KEY", "")
     headers = auth_header(token)
     project_id = _create_project_with_style_guide(client, token)
     item_id = _create_item(client, token, project_id, content_type="devotional")
@@ -61,7 +65,9 @@ def test_draft_demo_mode_devotional(client, token) -> None:
     assert "Grace in Action" in version["body"]
 
 
-def test_draft_increments_version_number(client, token) -> None:
+def test_draft_increments_version_number(client, token, monkeypatch) -> None:
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "ANTHROPIC_API_KEY", "")
     headers = auth_header(token)
     project_id = _create_project_with_style_guide(client, token)
     item_id = _create_item(client, token, project_id)

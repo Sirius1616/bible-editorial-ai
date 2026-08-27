@@ -25,7 +25,9 @@ def _create_item(client, token: str, project_id: int) -> int:
     return response.json()["id"]
 
 
-def test_style_check_uses_latest_version_body(client, token) -> None:
+def test_style_check_uses_latest_version_body(client, token, monkeypatch) -> None:
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "ANTHROPIC_API_KEY", "")
     headers = auth_header(token)
     project_id = _create_project(client, token)
     item_id = _create_item(client, token, project_id)
@@ -52,7 +54,9 @@ def test_style_check_uses_latest_version_body(client, token) -> None:
     assert any("first-person" in issue["reason"].lower() for issue in issues)
 
 
-def test_style_check_accepts_explicit_body(client, token) -> None:
+def test_style_check_accepts_explicit_body(client, token, monkeypatch) -> None:
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "ANTHROPIC_API_KEY", "")
     headers = auth_header(token)
     project_id = _create_project(client, token)
     item_id = _create_item(client, token, project_id)

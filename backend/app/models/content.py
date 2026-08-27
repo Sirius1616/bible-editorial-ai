@@ -16,6 +16,7 @@ class ContentItem(Base):
     content_type: Mapped[str] = mapped_column(String(50), default="study_note")
     status: Mapped[str] = mapped_column(String(50), default="assigned")
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    assignee_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     verse_start_book: Mapped[str | None] = mapped_column(String(50), nullable=True)
     verse_start_chapter: Mapped[int | None] = mapped_column(Integer, nullable=True)
     verse_start_verse: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -74,6 +75,7 @@ class ContentItem(Base):
         return f"{start['book']} {start['chapter']}:{start['verse']}"
 
     project: Mapped["Project"] = relationship(back_populates="content_items")  # noqa: F821
+    assignee: Mapped["User | None"] = relationship(foreign_keys=[assignee_id])  # noqa: F821
     versions: Mapped[list["ContentVersion"]] = relationship(
         back_populates="content_item",
         cascade="all, delete-orphan",

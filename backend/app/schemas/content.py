@@ -14,6 +14,7 @@ class ContentItemCreate(BaseModel):
     passage: str = ""
     content_type: str = "study_note"
     due_date: datetime | None = None
+    assignee_id: int | None = None
     verse_start: VerseAnchor | None = None
     verse_end: VerseAnchor | None = None
 
@@ -23,6 +24,7 @@ class ContentItemUpdate(BaseModel):
     passage: str | None = None
     content_type: str | None = None
     due_date: datetime | None = None
+    assignee_id: int | None = None
     verse_start: VerseAnchor | None = None
     verse_end: VerseAnchor | None = None
 
@@ -37,6 +39,8 @@ class ContentItemOut(BaseModel):
     content_type: str
     status: str
     due_date: datetime | None
+    assignee_id: int | None = None
+    assignee_name: str | None = None
     verse_start: VerseAnchor | None
     verse_end: VerseAnchor | None
     created_at: datetime

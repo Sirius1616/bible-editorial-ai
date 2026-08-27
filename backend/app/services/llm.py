@@ -56,13 +56,17 @@ def _find_snippet(body: str, pattern: str) -> str | None:
 def build_draft_prompt(
         passage: str, title: str, content_type: str, style_guide: str, translation: str
 ) -> str:
-    return f"""Role: You are a bible publisher or a publishing house
-                Rule: - Do not fabricate content but let it be around the {passage}
-                      - There should be no heading and follow the style  guide instructions
-                
-                Write a {content_type} with a title: {title} around {passage}, and 
-                should follow {CONTENT_TYPE_GUIDANCE[content_type]} style and using the following translation {translation} and the {style_guide}
-                      """
+    guidance = CONTENT_TYPE_GUIDANCE.get(content_type, "Write clearly and concisely.")
+    return f"""You are a bible publisher or a publishing house.
+
+Do not fabricate content but let it be around the {passage}.
+No heading. Follow the style guide instructions.
+
+Write a {content_type} with a title: {title} around {passage}.
+Follow this style: {guidance}
+Use this translation: {translation}
+Style guide: {style_guide}
+"""
 
 def build_mock_draft(
     passage: str, title: str, content_type: str, style_guide: str
