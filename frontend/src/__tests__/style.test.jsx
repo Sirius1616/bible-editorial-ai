@@ -38,6 +38,7 @@ vi.mock("../api", () => ({
     get: vi.fn().mockResolvedValue(mocks.project),
     create: vi.fn(),
     list: vi.fn(),
+    members: vi.fn().mockResolvedValue([]),
   },
   itemsApi: {
     get: vi.fn().mockResolvedValue(mocks.item),
