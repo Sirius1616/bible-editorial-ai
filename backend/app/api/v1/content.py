@@ -24,6 +24,7 @@ from app.schemas.content import (
     VersionDiffOut,
 )
 from app.services.diff import diff_bodies
+from app.services.notification import create_notification
 
 router = APIRouter(prefix="/projects/{project_id}/items", tags=["content"])
 
@@ -120,6 +121,16 @@ def create_item(
     db.add(item)
     db.flush()
     db.add(ContentVersion(content_item_id=item.id, version_number=1, body="", created_by=user.id))
+    db.flush()
+    if item.assignee_id and item.assignee_id != user.id:
+        create_notification(
+            db,
+            user_id=item.assignee_id,
+            project_id=project_id,
+            content_item_id=item.id,
+            type="assignment",
+            message=f'"{item.title}" has been assigned to you',
+        )
     db.commit()
     db.refresh(item)
     return enrich_item(item, db)
@@ -148,14 +159,26 @@ def update_item(
     project = get_accessible_project(project_id, user, db)
     ensure_project_role(db, project, user, PROJECT_EDIT_ROLES)
     item = get_owned_item(project, item_id, db)
+    new_assignee = None
     if "assignee_id" in payload.model_fields_set:
         validate_assignee(project_id, payload.assignee_id, db)
+        new_assignee = payload.assignee_id
     if payload.model_fields_set & {"verse_start", "verse_end"}:
         apply_verse_anchor(item, payload)
     for field, value in payload.model_dump(exclude_unset=True, exclude={"verse_start", "verse_end"}).items():
         setattr(item, field, value)
     if not item.passage:
         item.passage = item.verse_label() or ""
+    db.flush()
+    if new_assignee is not None and new_assignee != user.id:
+        create_notification(
+            db,
+            user_id=new_assignee,
+            project_id=project_id,
+            content_item_id=item.id,
+            type="assignment",
+            message=f'You have been assigned to "{item.title}"',
+        )
     db.commit()
     db.refresh(item)
     return enrich_item(item, db)
@@ -292,7 +315,7 @@ def add_comment(
 ) -> Comment:
     project = get_accessible_project(project_id, user, db)
     ensure_project_role(db, project, user, PROJECT_COMMENT_ROLES)
-    get_owned_item(project, item_id, db)
+    item = get_owned_item(project, item_id, db)
     if payload.parent_id is not None:
         parent = db.get(Comment, payload.parent_id)
         if parent is None or parent.content_item_id != item_id:
@@ -310,6 +333,16 @@ def add_comment(
         anchor_text=payload.anchor_text,
     )
     db.add(comment)
+    db.flush()
+    if item.assignee_id and item.assignee_id != user.id:
+        create_notification(
+            db,
+            user_id=item.assignee_id,
+            project_id=project_id,
+            content_item_id=item.id,
+            type="comment",
+            message=f'{user.full_name} commented on "{item.title}"',
+        )
     db.commit()
     db.refresh(comment)
     return comment

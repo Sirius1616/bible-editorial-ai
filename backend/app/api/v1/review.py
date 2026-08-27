@@ -12,6 +12,7 @@ from app.db.session import get_db
 from app.models.content import ContentItem, StatusHistory
 from app.models.user import User
 from app.schemas.content import ContentItemOut, StatusHistoryOut, TransitionIn
+from app.services.notification import create_notification
 
 router = APIRouter(prefix="/projects/{project_id}/items/{item_id}", tags=["workflow"])
 
@@ -55,7 +56,18 @@ def apply_transition(
             changed_by=user.id,
         )
     )
+    from_status_label = item.status
     item.status = to_status
+    db.flush()
+    if item.assignee_id and item.assignee_id != user.id:
+        create_notification(
+            db,
+            user_id=item.assignee_id,
+            project_id=item.project_id,
+            content_item_id=item.id,
+            type="status_change",
+            message=f'"{item.title}" moved from {from_status_label} to {to_status}',
+        )
     db.commit()
     db.refresh(item)
     return item

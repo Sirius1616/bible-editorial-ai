@@ -111,3 +111,103 @@ def test_notifications_are_per_user(client: TestClient) -> None:
     assert response.json()[0]["message"] == "For user 2"
 
     db.close()
+
+
+def _add_workspace_member(client, admin_token: str, member_token: str, email: str) -> int:
+    workspaces = client.get("/api/v1/workspaces", headers=auth_header(admin_token)).json()
+    workspace_id = next(w["id"] for w in workspaces if w["my_role"] == "owner")
+    invite = client.post(
+        f"/api/v1/workspaces/{workspace_id}/invites",
+        headers=auth_header(admin_token),
+        json={"email": email, "role": "member"},
+    )
+    assert invite.status_code == 201
+    accepted = client.post(
+        "/api/v1/invites/accept",
+        headers=auth_header(member_token),
+        json={"token": invite.json()["token"]},
+    )
+    assert accepted.status_code == 200
+    return workspace_id
+
+
+def _add_project_member(client, token: str, project_id: int, user_id: int, role: str = "editor") -> None:
+    response = client.post(
+        f"/api/v1/projects/{project_id}/members",
+        headers=auth_header(token),
+        json={"user_id": user_id, "role": role},
+    )
+    assert response.status_code == 201
+
+
+def test_assignment_creates_notification(client: TestClient) -> None:
+    token = _register(client, "admin@test.ai", "Admin User")
+    assignee_token = _register(client, "assignee@test.ai", "Assignee User")
+    assignee_me = client.get("/api/v1/auth/me", headers=auth_header(assignee_token)).json()
+    _add_workspace_member(client, token, assignee_token, "assignee@test.ai")
+
+    workspaces = client.get("/api/v1/workspaces", headers=auth_header(token)).json()
+    ws_id = next(w["id"] for w in workspaces if w["my_role"] == "owner")
+    project = client.post(
+        "/api/v1/projects", json={"name": "Test", "workspace_id": ws_id}, headers=auth_header(token)
+    ).json()
+    project_id = project["id"]
+
+    _add_project_member(client, token, project_id, assignee_me["id"])
+
+    item_resp = client.post(
+        f"/api/v1/projects/{project_id}/items",
+        json={"title": "Faith and Works", "content_type": "study_note", "assignee_id": assignee_me["id"]},
+        headers=auth_header(token),
+    )
+    assert item_resp.status_code == 201, item_resp.text
+    item = item_resp.json()
+    assert item["assignee_id"] == assignee_me["id"]
+
+    response = client.get("/api/v1/notifications", headers=auth_header(assignee_token))
+    notifs = response.json()
+    assert len(notifs) == 1
+    assert notifs[0]["type"] == "assignment"
+    assert "Faith and Works" in notifs[0]["message"]
+    assert notifs[0]["read"] is False
+
+    response = client.get("/api/v1/notifications", headers=auth_header(token))
+    assert response.json() == []
+
+
+def test_transition_creates_notification(client: TestClient) -> None:
+    token = _register(client, "admin@test.ai", "Admin User")
+    assignee_token = _register(client, "worker@test.ai", "Worker User")
+    assignee_me = client.get("/api/v1/auth/me", headers=auth_header(assignee_token)).json()
+    _add_workspace_member(client, token, assignee_token, "worker@test.ai")
+
+    workspaces = client.get("/api/v1/workspaces", headers=auth_header(token)).json()
+    ws_id = next(w["id"] for w in workspaces if w["my_role"] == "owner")
+    project = client.post(
+        "/api/v1/projects", json={"name": "Test", "workspace_id": ws_id}, headers=auth_header(token)
+    ).json()
+    project_id = project["id"]
+
+    _add_project_member(client, token, project_id, assignee_me["id"])
+
+    item_resp = client.post(
+        f"/api/v1/projects/{project_id}/items",
+        json={"title": "Psalm 23", "content_type": "study_note", "assignee_id": assignee_me["id"]},
+        headers=auth_header(token),
+    )
+    assert item_resp.status_code == 201, item_resp.text
+    item = item_resp.json()
+
+    client.post("/api/v1/notifications/read-all", headers=auth_header(assignee_token))
+
+    client.post(
+        f"/api/v1/projects/{project_id}/items/{item['id']}/transition",
+        json={"status": "in_progress"},
+        headers=auth_header(token),
+    )
+
+    response = client.get("/api/v1/notifications", headers=auth_header(assignee_token))
+    notifs = response.json()
+    status_notifs = [n for n in notifs if n["type"] == "status_change"]
+    assert len(status_notifs) == 1
+    assert "in_progress" in status_notifs[0]["message"]
