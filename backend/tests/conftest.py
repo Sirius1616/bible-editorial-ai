@@ -1,6 +1,9 @@
+import unittest.mock
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
+
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -25,6 +28,18 @@ def override_get_db():
 
 
 app.dependency_overrides[get_db] = override_get_db
+
+
+@pytest.fixture(autouse=True)
+def disable_email(monkeypatch):
+    """Never hit real SMTP during tests."""
+    import smtplib
+
+    fake_server = unittest.mock.MagicMock()
+    fake_server.__enter__ = unittest.mock.MagicMock(return_value=fake_server)
+    fake_server.__exit__ = unittest.mock.MagicMock(return_value=False)
+    monkeypatch.setattr(smtplib, "SMTP", unittest.mock.MagicMock(return_value=fake_server))
+
 
 
 @pytest.fixture()

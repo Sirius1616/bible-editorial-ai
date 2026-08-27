@@ -25,9 +25,6 @@ class Settings(BaseSettings):
     SMTP_PASS: str = ""
     SMTP_FROM: str = "noreply@bibleeditorial.ai"
 
-    N8N_INTERNAL_URL: str = "http://n8n:5678"
-    N8N_PUBLIC_URL: str = "http://localhost:5678"
-
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
