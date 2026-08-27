@@ -35,7 +35,7 @@ export default function ProjectDetail() {
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ title: "", passage: "", content_type: "study_note" });
+  const [form, setForm] = useState({ title: "", passage: "", content_type: "study_note", assignee_id: "", due_date: "" });
   const [anchor, setAnchor] = useState({
     book: "",
     startChapter: "",
@@ -59,7 +59,7 @@ export default function ProjectDetail() {
       ]);
       setProject(p);
       setItems(items.sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]));
-      if (isAdmin(p.my_role)) {
+      if (isAdmin(p.my_role) || canEdit(p.my_role)) {
         const [ms, ws] = await Promise.all([
           projectsApi.members(projectId),
           p.workspace_id ? workspacesApi.get(p.workspace_id) : Promise.resolve(null),
@@ -85,6 +85,8 @@ export default function ProjectDetail() {
     try {
       const payload = {
         ...form,
+        assignee_id: form.assignee_id ? Number(form.assignee_id) : null,
+        due_date: form.due_date || null,
         verse_start:
           anchor.book && anchor.startChapter && anchor.startVerse
             ? { book: anchor.book, chapter: Number(anchor.startChapter), verse: Number(anchor.startVerse) }
@@ -96,7 +98,7 @@ export default function ProjectDetail() {
       };
       await itemsApi.create(projectId, payload);
       setShowForm(false);
-      setForm({ title: "", passage: "", content_type: "study_note" });
+      setForm({ title: "", passage: "", content_type: "study_note", assignee_id: "", due_date: "" });
       setAnchor({ book: "", startChapter: "", startVerse: "", endChapter: "", endVerse: "" });
       await load();
     } catch (err) {
@@ -265,6 +267,30 @@ export default function ProjectDetail() {
                   ))}
                 </select>
               </div>
+              <div>
+                <label htmlFor="i-assignee">Assign to</label>
+                <select
+                  id="i-assignee"
+                  value={form.assignee_id}
+                  onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
+                >
+                  <option value="">Unassigned</option>
+                  {members.map((m) => (
+                    <option key={m.user_id} value={m.user_id}>
+                      {m.full_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="i-due">Due date</label>
+                <input
+                  id="i-due"
+                  type="date"
+                  value={form.due_date}
+                  onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                />
+              </div>
             </div>
 
             <div className="anchor-group">
@@ -414,6 +440,8 @@ export default function ProjectDetail() {
               <tr>
                 <th>Title</th>
                 <th>Passage</th>
+                <th>Assignee</th>
+                <th>Due</th>
                 <th>Type</th>
                 <th>Status</th>
                 <th></th>
@@ -431,6 +459,12 @@ export default function ProjectDetail() {
                     </span>
                   </td>
                   <td className="cell-muted passage-ref">{item.passage || "—"}</td>
+                  <td className="cell-muted">{item.assignee_name || "—"}</td>
+                  <td className="cell-muted">
+                    {item.due_date
+                      ? new Date(item.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+                      : "—"}
+                  </td>
                   <td>
                     <span className="badge badge-type">
                       {typeIcon(item.content_type)}
