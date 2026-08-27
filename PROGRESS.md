@@ -1,6 +1,6 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-27 — Task assignment & workload (#22) done. 62 pytest / 32 Vitest passing.
+> **Updated:** 2026-08-27 — Task assignment (#22) + notifications (#23) done. 69 pytest / 32 Vitest passing.
 > **Note:** AI issues (#25 Scripture QA, #26 cross-reference consistency) deferred until paid Anthropic API key is available. LLM features work in demo/mock mode only.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
@@ -195,7 +195,7 @@ Senior-designer review of the UI → targeted fixes for hierarchy, consistency, 
 | #36 | Multi-tenancy (workspaces) + invites | — (start early, team base) ✅ |
 | #21 | Roles & permissions | #36 |
 | #22 | Task assignment & workload | #36 ✅ |
-| #23 | Notifications (in-app + email via n8n) | #22 |
+| #23 | Notifications (in-app + email via n8n) | #22 ✅ |
 | #34 | Mentions & audit trail | #23 (audit part is standalone) |
 | #33 | Multi-step sign-off workflow | #20 + #21 |
 
@@ -258,6 +258,20 @@ Senior-designer review of the UI → targeted fixes for hierarchy, consistency, 
     members loaded for admin/editor roles
   - Tests ✅: 5 backend tests (create with assignee, update assignee, non-member rejected,
     unassign, list shows assignee) — 62 pytest / 32 Vitest, lint 0 errors, build clean
+
+- ✅ #23 Notifications (in-app) — **done** (2026-08-27)
+  - Backend ✅: `Notification` model (user_id, project_id, content_item_id, type, message, read,
+    created_at); migration `891548148aa6`; CRUD API (`GET /notifications`, `GET
+    /notifications/unread-count`, `POST /notifications/{id}/read`, `POST /notifications/read-all`)
+  - Auto-creation ✅: assignment notifications (create + update item), status change notifications
+    (transition), comment notifications (add comment) — all respect "don't notify yourself"
+  - Frontend ✅: notification bell in topbar with unread badge count, dropdown panel with
+    notifications list, mark-read on click, mark-all-read button, auto-refresh every 30s
+  - Email via n8n ✅: deferred to #40 (n8n automations/webhooks) — the webhook infrastructure
+    will call a backend endpoint to create notifications + send email
+  - Tests ✅: 7 backend tests (CRUD lifecycle, mark read, mark all read, per-user isolation,
+    assignment creates notification, transition creates notification) — 69 pytest / 32 Vitest,
+    lint 0 errors, build clean
 
 ### Phase 5 — Publishing, business & integrations (`priority:p5`)
 | # | Issue | Builds on |
