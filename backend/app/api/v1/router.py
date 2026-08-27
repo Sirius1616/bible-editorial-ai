@@ -5,6 +5,7 @@ from app.api.v1 import (
     content,
     drafts,
     exports,
+    notifications,
     projects,
     qa,
     review,
@@ -25,3 +26,4 @@ api_router.include_router(style.router)
 api_router.include_router(translations.router)
 api_router.include_router(workspaces.router)
 api_router.include_router(workspaces.invites_router)
+api_router.include_router(notifications.router)
