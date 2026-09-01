@@ -119,7 +119,7 @@ in parallel internally; phases run in order because later phases depend on earli
 
 - ✅ #24 Style-guide adherence checking: `POST .../items/{id}/style-check` (optional `body`,
   defaults to latest version) → score 0-100 + issues (snippet/reason/severity). AI mode returns
-  strict JSON via Anthropic Claude 3.5 Haiku; demo mode uses rule-based mock (first-person,
+  strict JSON via Anthropic Claude Haiku 4.5; demo mode uses rule-based mock (first-person,
   intensifiers, wordiness, placeholders, exclamations). Frontend: "Style check" button in the
   editor, score badge + issue cards panel, inline `<mark>` highlights with severity colors and a
   toggle. LLM integration rebuilt from scratch (user learning exercise) — 57 backend tests

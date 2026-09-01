@@ -7,7 +7,7 @@ from app.services.bible_books import validate_reference
 from app.services.translation import DEMO_DATASET, dataset_key, fetch_passage, passage_reference
 
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
-ANTHROPIC_MODEL = "claude-3-5-haiku-20241022"
+ANTHROPIC_MODEL = "claude-haiku-4-5"
 
 CONTENT_TYPE_GUIDANCE: dict[str, str] = {
   "study_note": "write for a study session, with academic or instructional tone you'll explain with meaning explanation and theology embeded with ~200 words",

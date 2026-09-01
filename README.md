@@ -16,7 +16,7 @@ Bible and Christian book publishing runs on thousands of hours of manual editori
 ## Features
 
 ### AI-Powered Draft Generation
-Generate study notes, devotionals, and reference entries from any Bible passage. The AI follows per-project style guides, uses the correct translation, and adapts tone to content type. Powered by **Anthropic Claude 3.5 Haiku** — falls back to offline demo mode when no API key is set.
+Generate study notes, devotionals, and reference entries from any Bible passage. The AI follows per-project style guides, uses the correct translation, and adapts tone to content type. Powered by **Anthropic Claude Haiku 4.5** — falls back to offline demo mode when no API key is set.
 
 ### Editorial Review Workflow
 Content moves through a structured pipeline: **Draft → In Review → Approved → Published**. Each transition is logged with timestamps and author attribution. Full version history for every content item — compare any two versions side-by-side with word-level diff.
@@ -47,7 +47,7 @@ Persistent theme toggle with system preference detection. Professional design sy
 |---|---|
 | **Backend** | Python 3.12, FastAPI, SQLAlchemy 2.0 |
 | **Database** | PostgreSQL 16 |
-| **AI** | Anthropic Claude 3.5 Haiku (with offline demo mode) |
+| **AI** | Anthropic Claude Haiku 4.5 (with offline demo mode) |
 | **Frontend** | React 18, Vite, React Router |
 | **Migrations** | Alembic |
 | **Testing** | pytest (57 tests), Vitest (32 tests) |
@@ -165,14 +165,16 @@ Every transition is logged with author, timestamp, and optional note.
 
 ### AI Integration
 
-The app uses **Anthropic Claude 3.5 Haiku** for two features:
+The app uses **Anthropic Claude Haiku 4.5** for these features:
 
 | Feature | What it does | Response format |
 |---|---|---|
 | **AI Draft** | Writes editorial content from a Bible passage | Plain text |
 | **Style Check** | Reviews a manuscript against the style guide | JSON (score + issues) |
+| **Scripture QA** | Verifies quoted scripture against the anchored passage | JSON (score + issues) |
+| **Consistency** | Validates cross-references and terminology drift | JSON (score + issues) |
 
-Without an `ANTHROPIC_API_KEY`, both features fall back to offline demo mode — the app works fully without paying for API calls.
+Without an `ANTHROPIC_API_KEY`, all features fall back to offline demo mode — the app works fully without paying for API calls.
 
 ### Role-Based Access
 
