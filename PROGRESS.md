@@ -124,6 +124,17 @@ in parallel internally; phases run in order because later phases depend on earli
   editor, score badge + issue cards panel, inline `<mark>` highlights with severity colors and a
   toggle. LLM integration rebuilt from scratch (user learning exercise) — 57 backend tests
   passing, 0 skipped.
+- ✅ **Live-LLM hardening** (2026-09-02): all LLM JSON analyses (style check, #25 QA, #26
+  consistency) now run through a fence/prose-tolerant `_parse_json_object` and fall back to a
+  clear "could not be completed; retry" result instead of a 500 when the model wraps output in
+  ```json fences or truncates. `max_tokens` for JSON outputs raised to 1200. Model updated to
+  `claude-haiku-4-5` (the previous `claude-3-5-haiku-20241022` was retired → 404).
+- ✅ **Gradual AI draft generation** (2026-09-02): `POST .../items/{id}/draft/stream` returns
+  Server-Sent Events; tokens stream into the editor progressively (fine) while the button shows a
+  spinner, instead of loading the whole draft at once. Live mode uses the Anthropic streaming API
+  (`stream: true`); demo mode yields word chunks on a small delay. The streamed draft is NOT
+  auto-saved — the user presses "Save new version" to keep it. The non-streaming `POST /draft`
+  endpoint remains (auto-saves a version) with its existing tests.
 - ✅ #27 Translation comparison sidebar: `GET .../items/{item_id}/translations` uses the item's
   verse anchor → KJV/WEB (public domain) always, plus ESV/NIV/NASB/NLT slots. Real mode fetches
   all five via api.bible (Scripture API) when `BIBLE_API_KEY` is set; demo mode serves a bundled

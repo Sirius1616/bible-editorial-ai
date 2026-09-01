@@ -1,4 +1,4 @@
-import { api } from "./client";
+import { api, streamEvent } from "./client";
 
 export const authApi = {
   login: (email, password) => api("/auth/login", { method: "POST", body: { email, password } }),
@@ -71,6 +71,8 @@ export const itemsApi = {
     api(`/projects/${projectId}/items/${itemId}/comments/${commentId}`, { method: "PATCH", body }),
   generateDraft: (projectId, itemId) =>
     api(`/projects/${projectId}/items/${itemId}/draft`, { method: "POST" }),
+  streamDraft: (projectId, itemId, handlers) =>
+    streamEvent(`/projects/${projectId}/items/${itemId}/draft/stream`, handlers),
   styleCheck: (projectId, itemId, body) =>
     api(`/projects/${projectId}/items/${itemId}/style-check`, {
       method: "POST",

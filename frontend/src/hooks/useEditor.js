@@ -225,20 +225,28 @@ export default function useEditor(projectId, itemId) {
     setDrafting(true);
     setError("");
     setInfo("");
-    try {
-      const v = await itemsApi.generateDraft(projectId, itemId);
-      await load();
-      setSelected(v);
-      setInfo(
-        v.change_note?.includes("demo mode")
-          ? "AI draft generated in demo mode (no ANTHROPIC_API_KEY set). Add a key in backend/.env for live drafts."
-          : "AI draft generated and saved as a new version."
-      );
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setDrafting(false);
-    }
+    setBody("");
+    let streamed = "";
+    let streamFailed = false;
+    await itemsApi.streamDraft(projectId, itemId, {
+      onChunk: (text) => {
+        streamed += text;
+        setBody(streamed);
+      },
+      onDone: (data) => {
+        setInfo(
+          data.demo
+            ? "AI draft streamed into the editor in demo mode (no ANTHROPIC_API_KEY set). Press 'Save new version' to keep it."
+            : "AI draft streamed into the editor. Press 'Save new version' to keep it."
+        );
+      },
+      onError: (err) => {
+        streamFailed = true;
+        setError(err.message);
+      },
+    });
+    if (!streamed && !streamFailed) setError("Draft generation returned no text; please retry.");
+    setDrafting(false);
   }
 
   async function checkStyle() {
