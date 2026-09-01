@@ -1,7 +1,7 @@
 # Bible Editorial AI — MVP Progress
 
-> **Updated:** 2026-08-27 — Task assignment (#22) + notifications (#23) done. 71 pytest / 32 Vitest passing.
-> **Note:** AI issues (#25 Scripture QA, #26 cross-reference consistency) deferred until paid Anthropic API key is available. LLM features work in demo/mock mode only.
+> **Updated:** 2026-08-27 — Task assignment (#22) + notifications (#23) + Scripture QA (#25) + cross-reference/terminology consistency (#26) done. 85 pytest / 34 Vitest passing.
+> **Note:** AI features (#24 style-check, #25 Scripture QA, #26 consistency, #27 translations) fully work in demo/mock mode offline; live LLM verification activates when a funded `ANTHROPIC_API_KEY` is set.
 
 **Goal:** An AI-assisted editorial production platform for Bible / Christian book publishers
 (modeled on the needs of publishers like Peachtree Publishing / Christopher Hudson).
@@ -113,9 +113,9 @@ in parallel internally; phases run in order because later phases depend on earli
 | # | Issue | Builds on |
 |---|-------|-----------|
 | #24 | AI: style-guide adherence checking | AI pattern from #18 — ✅ done |
-| #27 | AI: translation comparison sidebar | #30 verse anchoring |
-| #25 | AI: Scripture QA (verse-quote verification) | #30 + #27 |
-| #26 | AI: cross-reference & terminology consistency | #30 |
+| #27 | AI: translation comparison sidebar | #30 verse anchoring — ✅ done |
+| #25 | AI: Scripture QA (verse-quote verification) | #30 + #27 — ✅ done |
+| #26 | AI: cross-reference & terminology consistency | #30 — ✅ done |
 
 - ✅ #24 Style-guide adherence checking: `POST .../items/{id}/style-check` (optional `body`,
   defaults to latest version) → score 0-100 + issues (snippet/reason/severity). AI mode returns
@@ -133,6 +133,23 @@ in parallel internally; phases run in order because later phases depend on earli
   400 when the item has no verse anchor. 6 backend tests + 4 Vitest tests (35 pytest / 18
   frontend passing), lint 0 errors, build clean, live smoke verified (login → item → panel → 6
   cards → insert quote). Demo DB items re-anchored to their seeded passages.
+- ✅ #25 Scripture QA (verse-quote verification): replaces the old `/qa/{item_id}/run` 501 stub
+  with `POST .../items/{item_id}/qa` (project-scoped, auth-gated, requires a verse anchor; optional
+  `body` defaults to the latest version). Compares quoted scripture in the manuscript against the
+  anchored passage → score 0-100 + issues with expected vs quoted. Demo mode reuses the bundled
+  KJV dataset (normalized token-order word-match on extracted quotes, offline); live mode fetches
+  the project translation via api.bible then asks Claude for strict JSON. Frontend: "QA check"
+  toolbar button + QA sidebar tab (score badge, "Expected vs quoted" expandable diff). 4 backend
+  tests (flagged quote error → 100, wrong quote → 0, missing anchor → 400, default body) + 1
+  Vitest test.
+- ✅ #26 Cross-reference & terminology consistency: `POST .../items/{item_id}/consistency` →
+  score 0-100 + `ref_issues` (broken cross-references) + `term_issues` (terminology drift).
+  Reference validation is fully deterministic via a new `services/bible_books.py` (66-book chapter
+  bounds, multi-word book parsing, ranges) — no LLM needed. Terminology drift: live mode scans the
+  item body + all other project items via Claude; demo mode flags inconsistent capitalization of
+  sacred terms. Frontend: "References" toolbar button + References sidebar tab. 10 backend tests
+  (parse edge cases, bad chapter/verse/unparseable refs, broken refs list, term drift, access
+  control) + 1 Vitest test. 85 backend / 34 frontend tests passing.
 
 ### Frontend maintenance & UX pass (2026-08-14, no issue)
 - ✅ **Refactor:** `pages/Editor` slimmed to a thin container; all state/handlers moved to
