@@ -1,15 +1,19 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import PROJECT_EDIT_ROLES, ensure_project_role, get_current_user
 from app.api.v1.projects import get_accessible_project
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.content import ContentItem, ContentVersion
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.content import ContentVersionOut
-from app.services.llm import generate_draft
+from app.services.llm import generate_draft, stream_draft
 
 router = APIRouter(prefix="/projects/{project_id}/items/{item_id}/draft", tags=["drafts"])
 
@@ -55,3 +59,41 @@ async def create_draft(
     db.commit()
     db.refresh(version)
     return version
+
+
+@router.post("/stream")
+async def create_draft_stream(
+    project_id: int,
+    item_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Stream an AI draft via Server-Sent Events (no version is auto-saved)."""
+    project: Project = get_accessible_project(project_id, user, db)
+    ensure_project_role(db, project, user, PROJECT_EDIT_ROLES)
+    item = db.get(ContentItem, item_id)
+    if item is None or item.project_id != project.id:
+        raise HTTPException(status_code=404, detail="Content item not found")
+
+    demo = not bool(settings.ANTHROPIC_API_KEY)
+
+    async def event_gen():
+        try:
+            async for chunk in stream_draft(
+                passage=item.passage or "",
+                title=item.title,
+                content_type=item.content_type,
+                style_guide=project.style_guide or "",
+                translation=project.translation or "",
+            ):
+                yield f"data: {json.dumps({'type': 'chunk', 'text': chunk})}\n\n"
+            yield f"data: {json.dumps({'type': 'done', 'demo': demo})}\n\n"
+        except Exception as exc:  # surface stream errors without killing the connection
+            print(f"Draft stream error: {exc}")
+            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)[:200]})}\n\n"
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

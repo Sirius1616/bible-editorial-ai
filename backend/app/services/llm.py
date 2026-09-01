@@ -1,13 +1,30 @@
 from app.core.config import settings
+import asyncio
 import re
 import httpx
 import json
+from collections.abc import AsyncIterator
 
 from app.services.bible_books import validate_reference
 from app.services.translation import DEMO_DATASET, dataset_key, fetch_passage, passage_reference
 
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_MODEL = "claude-haiku-4-5"
+
+MAX_TOKENS_JSON = 1200
+
+
+def _parse_json_object(text: str) -> dict:
+    """Parse a JSON object out of a model response that may include fences or prose."""
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[a-zA-Z]*\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        text = text[start : end + 1]
+    return json.loads(text)
 
 CONTENT_TYPE_GUIDANCE: dict[str, str] = {
   "study_note": "write for a study session, with academic or instructional tone you'll explain with meaning explanation and theology embeded with ~200 words",
@@ -135,9 +152,69 @@ async def generate_draft(
         except httpx.RequestError as e:
             print(f"Network error: {e}")
             return "Draft generation failed due to Network error", True
-        data = response.json()
-        text = data["content"][0]["text"]
+        try:
+            data = response.json()
+            text = data["content"][0]["text"]
+        except (KeyError, IndexError, json.JSONDecodeError):
+            return "Draft generation failed due to unexpected response", True
     return text, False
+
+
+def _chunk_words(text: str, size: int = 6) -> list[str]:
+    words = text.split()
+    return [" ".join(words[i : i + size]) for i in range(0, len(words), size)]
+
+
+async def stream_draft(
+    passage: str, title: str, content_type: str, style_guide: str = "", translation: str = ""
+) -> AsyncIterator[str]:
+    """Stream an editorial draft token-by-token.
+
+    Uses the Anthropic streaming API when a key is set; otherwise yields a
+    placeholder draft in small chunks so the demo feels gradual too.
+    """
+    if not settings.ANTHROPIC_API_KEY:
+        text = build_mock_draft(passage, title, content_type, style_guide)
+        for chunk in _chunk_words(text):
+            await asyncio.sleep(0.01)
+            yield chunk
+        return
+
+    prompt = build_draft_prompt(passage, title, content_type, style_guide, translation)
+    async with httpx.AsyncClient(timeout=120) as client:
+        async with client.stream(
+            "POST",
+            ANTHROPIC_URL,
+            headers={
+                "x-api-key": settings.ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": ANTHROPIC_MODEL,
+                "max_tokens": 1200,
+                "stream": True,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+        ) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if not line.startswith("data:"):
+                    continue
+                payload = line[len("data:") :].strip()
+                if payload == "[DONE]":
+                    break
+                try:
+                    event = json.loads(payload)
+                except json.JSONDecodeError:
+                    continue
+                if event.get("type") == "content_block_delta":
+                    chunk = (event.get("delta") or {}).get("text")
+                    if chunk:
+                        yield chunk
+                elif event.get("type") == "error":
+                    print(f"Stream error event: {event}")
+                    break
 
 
 def build_style_check_prompt(body: str, style_guide: str) -> str:
@@ -177,20 +254,35 @@ async def check_style_guide(
                 },
                 json = {
                     "model": ANTHROPIC_MODEL,
-                    "max_tokens": 500,
+                    "max_tokens": MAX_TOKENS_JSON,
                     "messages": [{"role": "user", "content": prompt}]
                 }
             )
             response.raise_for_status()
             data = response.json()
             text = data["content"][0]["text"]
-            result = json.loads(text)
+            result = _parse_json_object(text)
         except httpx.HTTPStatusError as e:
             print(f"API error: {e.response.status_code}, {e.response.text}")
             return {"score": 0, "issues": ["API error"]}, True
         except httpx.RequestError as e:
             print(f"Network Error: {e}")
             return {"score": 0, "issues": ["Request error"]}, True
+        except (KeyError, IndexError, json.JSONDecodeError) as exc:
+            print(f"Style check: unparseable LLM response: {exc}")
+            return (
+                {
+                    "score": 0,
+                    "issues": [
+                        {
+                            "snippet": "",
+                            "reason": "Style check could not be completed due to an LLM error; please retry.",
+                            "severity": "medium",
+                        }
+                    ],
+                },
+                True,
+            )
     return result, False
 
 
@@ -279,26 +371,39 @@ def build_mock_qa_issues(body: str, reference_text: str | None, reference: str) 
 
 async def _live_qa_result(
     body: str, reference: str, reference_text: str, translation: str
-) -> dict:
+) -> list[dict]:
     prompt = build_qa_prompt(body, reference, reference_text or "", translation)
     async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(
-            url=ANTHROPIC_URL,
-            headers={
-                "x-api-key": settings.ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": ANTHROPIC_MODEL,
-                "max_tokens": 800,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-        )
-        response.raise_for_status()
-        data = response.json()
-        text = data["content"][0]["text"]
-        return json.loads(text).get("issues", [])
+        try:
+            response = await client.post(
+                url=ANTHROPIC_URL,
+                headers={
+                    "x-api-key": settings.ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": ANTHROPIC_MODEL,
+                    "max_tokens": MAX_TOKENS_JSON,
+                    "messages": [{"role": "user", "content": prompt}],
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+            text = data["content"][0]["text"]
+            return _parse_json_object(text).get("issues", [])
+        except (httpx.HTTPStatusError, httpx.RequestError, KeyError, IndexError, json.JSONDecodeError) as exc:
+            print(f"QA: LLM result unavailable ({exc}); falling back to bundled text")
+            return [
+                {
+                    "snippet": "",
+                    "reference": reference,
+                    "expected": "",
+                    "actual": "",
+                    "reason": "QA check could not be completed due to an LLM error; please retry.",
+                    "severity": "medium",
+                }
+            ]
 
 
 def _pick_translation_text(fetched: dict, translation: str) -> str:
@@ -423,23 +528,27 @@ async def _live_consistency_terms(
 ) -> list[dict]:
     prompt = build_consistency_prompt(body, cross_refs, translation, project_bodies)
     async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(
-            url=ANTHROPIC_URL,
-            headers={
-                "x-api-key": settings.ANTHROPIC_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": ANTHROPIC_MODEL,
-                "max_tokens": 800,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-        )
-        response.raise_for_status()
-        data = response.json()
-        text = data["content"][0]["text"]
-        return json.loads(text).get("term_issues", [])
+        try:
+            response = await client.post(
+                url=ANTHROPIC_URL,
+                headers={
+                    "x-api-key": settings.ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": ANTHROPIC_MODEL,
+                    "max_tokens": MAX_TOKENS_JSON,
+                    "messages": [{"role": "user", "content": prompt}],
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+            text = data["content"][0]["text"]
+            return _parse_json_object(text).get("term_issues", [])
+        except (httpx.HTTPStatusError, httpx.RequestError, KeyError, IndexError, json.JSONDecodeError) as exc:
+            print(f"Consistency: LLM result unavailable ({exc})")
+            return []
 
 
 async def run_consistency_check(
