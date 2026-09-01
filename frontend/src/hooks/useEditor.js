@@ -42,6 +42,10 @@ export default function useEditor(projectId, itemId) {
   const [styleResult, setStyleResult] = useState(null);
   const [styleLoading, setStyleLoading] = useState(false);
   const [styleMarksOn, setStyleMarksOn] = useState(false);
+  const [qaResult, setQaResult] = useState(null);
+  const [qaLoading, setQaLoading] = useState(false);
+  const [consistencyResult, setConsistencyResult] = useState(null);
+  const [consistencyLoading, setConsistencyLoading] = useState(false);
   const [translationsOpen, setTranslationsOpen] = useState(false);
   const [translations, setTranslations] = useState(null);
   const [translationsLoading, setTranslationsLoading] = useState(false);
@@ -253,6 +257,39 @@ export default function useEditor(projectId, itemId) {
     }
   }
 
+  async function checkQA() {
+    if (!item?.verse_start) {
+      setError("This item needs a verse anchor before it can be QA-checked.");
+      setActiveTab("qa");
+      return;
+    }
+    setQaLoading(true);
+    setError("");
+    try {
+      const result = await itemsApi.qaCheck(projectId, itemId, body);
+      setQaResult(result);
+      setActiveTab("qa");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setQaLoading(false);
+    }
+  }
+
+  async function checkConsistency() {
+    setConsistencyLoading(true);
+    setError("");
+    try {
+      const result = await itemsApi.consistencyCheck(projectId, itemId, { body });
+      setConsistencyResult(result);
+      setActiveTab("consistency");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setConsistencyLoading(false);
+    }
+  }
+
   async function toggleTranslations() {
     if (translationsOpen) {
       setTranslationsOpen(false);
@@ -435,6 +472,10 @@ export default function useEditor(projectId, itemId) {
     styleResult,
     styleLoading,
     styleMarksOn,
+    qaResult,
+    qaLoading,
+    consistencyResult,
+    consistencyLoading,
     translationsOpen,
     translations,
     translationsLoading,
@@ -454,6 +495,8 @@ export default function useEditor(projectId, itemId) {
     runDiff,
     generateDraft,
     checkStyle,
+    checkQA,
+    checkConsistency,
     toggleTranslations,
     insertQuote,
     transitionTo,

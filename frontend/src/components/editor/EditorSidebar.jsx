@@ -4,10 +4,14 @@ import {
   GitCompare,
   History,
   Layers,
+  Link2,
   MessageSquare,
+  ShieldCheck,
 } from "lucide-react";
 import CommentsPanel from "./CommentsPanel";
+import ConsistencyPanel from "./ConsistencyPanel";
 import DiffPanel from "./DiffPanel";
+import QAPanel from "./QAPanel";
 import StatusHistoryPanel from "./StatusHistoryPanel";
 import StylePanel from "./StylePanel";
 import TranslationsPanel from "./TranslationsPanel";
@@ -26,6 +30,8 @@ export default function EditorSidebar({ editor }) {
       badge: translations?.translations?.length,
     },
     { id: "style", label: "Style", icon: Gauge },
+    { id: "qa", label: "QA", icon: ShieldCheck },
+    { id: "consistency", label: "References", icon: Link2 },
     { id: "history", label: "History", icon: History, badge: history.length },
     { id: "comments", label: "Comments", icon: MessageSquare, badge: comments.length },
   ];
@@ -52,6 +58,8 @@ export default function EditorSidebar({ editor }) {
         {activeTab === "diff" && <DiffPanel editor={editor} />}
         {activeTab === "translations" && <TranslationsPanel editor={editor} />}
         {activeTab === "style" && <StylePanel editor={editor} />}
+        {activeTab === "qa" && <QAPanel editor={editor} />}
+        {activeTab === "consistency" && <ConsistencyPanel editor={editor} />}
         {activeTab === "history" && <StatusHistoryPanel editor={editor} />}
         {activeTab === "comments" && <CommentsPanel editor={editor} />}
       </div>

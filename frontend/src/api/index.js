@@ -76,6 +76,16 @@ export const itemsApi = {
       method: "POST",
       body: { body },
     }),
+  qaCheck: (projectId, itemId, body) =>
+    api(`/projects/${projectId}/items/${itemId}/qa`, {
+      method: "POST",
+      body: { body },
+    }),
+  consistencyCheck: (projectId, itemId, payload) =>
+    api(`/projects/${projectId}/items/${itemId}/consistency`, {
+      method: "POST",
+      body: payload ?? {},
+    }),
   translations: (projectId, itemId) =>
     api(`/projects/${projectId}/items/${itemId}/translations`),
   review: (projectId, itemId, action) =>

@@ -1,8 +1,10 @@
 import {
   BookOpenCheck,
   Gauge,
+  Link2,
   Loader2,
   Save,
+  ShieldCheck,
   Sparkles,
 } from "lucide-react";
 import { buildAnnotatedParts, buildStyleParts } from "../../lib/annotations";
@@ -26,6 +28,10 @@ export default function ContentEditor({ editor }) {
     styleResult,
     styleLoading,
     checkStyle,
+    qaLoading,
+    checkQA,
+    consistencyLoading,
+    checkConsistency,
     translationsOpen,
     toggleTranslations,
     drafting,
@@ -63,6 +69,22 @@ export default function ContentEditor({ editor }) {
           >
             <BookOpenCheck size={14} />
             {translationsOpen ? "Hide translations" : "Translations"}
+          </button>
+          <button
+            onClick={checkQA}
+            disabled={qaLoading}
+            title="Verify quoted scripture against the anchored passage"
+          >
+            {qaLoading ? <Loader2 size={14} className="spinner" /> : <ShieldCheck size={14} />}
+            {qaLoading ? "Checking…" : "QA check"}
+          </button>
+          <button
+            onClick={checkConsistency}
+            disabled={consistencyLoading}
+            title="Validate cross-references and detect terminology drift"
+          >
+            {consistencyLoading ? <Loader2 size={14} className="spinner" /> : <Link2 size={14} />}
+            {consistencyLoading ? "Checking…" : "References"}
           </button>
           {editable && (
             <button className="accent" onClick={generateDraft} disabled={drafting}>
