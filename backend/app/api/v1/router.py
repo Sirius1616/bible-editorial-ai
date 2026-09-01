@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     auth,
+    consistency,
     content,
     drafts,
     exports,
@@ -21,6 +22,7 @@ api_router.include_router(content.router)
 api_router.include_router(drafts.router)
 api_router.include_router(review.router)
 api_router.include_router(qa.router)
+api_router.include_router(consistency.router)
 api_router.include_router(exports.router)
 api_router.include_router(style.router)
 api_router.include_router(translations.router)

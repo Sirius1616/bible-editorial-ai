@@ -85,6 +85,53 @@ class StyleCheckIn(BaseModel):
     body: str | None = None
 
 
+class QACheckIn(BaseModel):
+    body: str | None = None
+
+
+class QAIssue(BaseModel):
+    snippet: str
+    reference: str
+    expected: str
+    actual: str
+    reason: str
+    severity: str = "medium"
+
+
+class QAOut(BaseModel):
+    reference: str = ""
+    score: int
+    issues: list[QAIssue]
+    demo: bool
+
+
+class ReferenceIssue(BaseModel):
+    reference: str
+    reason: str
+    severity: str = "high"
+
+
+class TermIssue(BaseModel):
+    term: str
+    count: int
+    variants: list[str]
+    reason: str
+    severity: str = "medium"
+
+
+class ConsistencyIn(BaseModel):
+    body: str | None = None
+    cross_refs: list[str] | None = None
+
+
+class ConsistencyOut(BaseModel):
+    score: int
+    references_checked: int
+    ref_issues: list[ReferenceIssue]
+    term_issues: list[TermIssue]
+    demo: bool
+
+
 class StyleIssue(BaseModel):
     snippet: str
     reason: str

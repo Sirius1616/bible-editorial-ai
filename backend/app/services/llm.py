@@ -3,6 +3,9 @@ import re
 import httpx
 import json
 
+from app.services.bible_books import validate_reference
+from app.services.translation import DEMO_DATASET, dataset_key, fetch_passage, passage_reference
+
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_MODEL = "claude-3-5-haiku-20241022"
 
@@ -189,4 +192,294 @@ async def check_style_guide(
             print(f"Network Error: {e}")
             return {"score": 0, "issues": ["Request error"]}, True
     return result, False
+
+
+# ---------------------------------------------------------------------------
+# Scripture QA (verse-quote verification, #25)
+# ---------------------------------------------------------------------------
+
+_QUOTE_RE = re.compile(r'“([^”]+)”|"([^"]+)"')
+
+# Sacred terms (canonical form, variant key) used by the demo terminology scan.
+SACRED_TERMS: list[tuple[str, str]] = [
+    ("god", "God"),
+    ("christ", "Christ"),
+    ("lord", "Lord"),
+    ("jesus", "Jesus"),
+    ("holy spirit", "Holy Spirit"),
+    ("trinity", "Trinity"),
+]
+
+
+def _extract_quotes(body: str) -> list[str]:
+    return [m.group(1) or m.group(2) for m in _QUOTE_RE.finditer(body)]
+
+
+def _normalize_text(text: str) -> str:
+    text = re.sub(r"[^a-z0-9 ]", " ", text.lower())
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _order_match_ratio(quote_words: list[str], ref_words: list[str]) -> float:
+    if not quote_words:
+        return 1.0
+    qi = 0
+    for w in ref_words:
+        if qi < len(quote_words) and w == quote_words[qi]:
+            qi += 1
+    return qi / len(quote_words)
+
+
+def _qa_score(issues: list[dict]) -> int:
+    return max(0, 100 - sum(15 if i["severity"] == "high" else 8 for i in issues))
+
+
+def build_qa_prompt(body: str, reference: str, reference_text: str, translation: str) -> str:
+    return f"""You are a proofreader for a Bible publishing house.
+
+The {translation} text of {reference} is:
+{reference_text}
+
+Verify every scripture quote in the manuscript below against that text. Flag wording,
+wording-order, and attribution mismatches. Do not flag the surrounding commentary.
+
+Manuscript:
+{body}
+
+Return ONLY a JSON object:
+{{"issues": [{{"snippet": "the quoted text", "reference": "{reference}",
+"expected": "what the reference says", "actual": "what the manuscript quotes",
+"reason": "why it mismatches the reference", "severity": "high|medium"}}]}}
+Leave issues empty if every quote matches."""
+
+
+def build_mock_qa_issues(body: str, reference_text: str | None, reference: str) -> list[dict]:
+    if not reference_text:
+        return []
+    ref_words = _normalize_text(reference_text).split()
+    issues = []
+    for quote in _extract_quotes(body):
+        words = _normalize_text(quote).split()
+        if len(words) < 4:
+            continue
+        ratio = _order_match_ratio(words, ref_words)
+        if ratio < 0.85:
+            issues.append(
+                {
+                    "snippet": quote[:130],
+                    "reference": reference,
+                    "expected": reference_text[:200],
+                    "actual": quote[:200],
+                    "reason": f"Quoted text differs from {reference} ({int(ratio * 100)}% word match).",
+                    "severity": "high" if ratio < 0.5 else "medium",
+                }
+            )
+    return issues
+
+
+async def _live_qa_result(
+    body: str, reference: str, reference_text: str, translation: str
+) -> dict:
+    prompt = build_qa_prompt(body, reference, reference_text or "", translation)
+    async with httpx.AsyncClient(timeout=60) as client:
+        response = await client.post(
+            url=ANTHROPIC_URL,
+            headers={
+                "x-api-key": settings.ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": ANTHROPIC_MODEL,
+                "max_tokens": 800,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+        text = data["content"][0]["text"]
+        return json.loads(text).get("issues", [])
+
+
+def _pick_translation_text(fetched: dict, translation: str) -> str:
+    for entry in fetched.get("translations", []):
+        if entry.get("name") == translation and entry.get("text"):
+            return entry["text"]
+    for entry in fetched.get("translations", []):
+        if entry.get("available") and entry.get("text"):
+            return entry["text"]
+    return ""
+
+
+async def run_scripture_qa(
+    body: str,
+    book: str,
+    chapter: int,
+    start_verse: int,
+    end_verse: int | None,
+    translation: str = "",
+) -> tuple[dict, bool]:
+    """Verify scripture quotes in a manuscript against the anchored passage.
+
+    Returns (result_dict, is_demo). result_dict has keys "reference", "score",
+    and "issues".
+    """
+    reference = passage_reference(book, chapter, start_verse, end_verse)
+
+    if not settings.ANTHROPIC_API_KEY:
+        bundled = DEMO_DATASET.get(dataset_key(book, chapter, start_verse, end_verse))
+        reference_text = bundled[0] if bundled else None
+        issues = build_mock_qa_issues(body, reference_text, reference)
+        return (
+            {"reference": reference, "score": _qa_score(issues), "issues": issues},
+            True,
+        )
+
+    fetched, _ = await fetch_passage(book, chapter, start_verse, end_verse)
+    reference_text = _pick_translation_text(fetched, translation or "ESV")
+    issues = await _live_qa_result(body, reference, reference_text, translation or "ESV")
+    return (
+        {"reference": reference, "score": _qa_score(issues), "issues": issues},
+        False,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Cross-reference & terminology consistency (#26)
+# ---------------------------------------------------------------------------
+
+
+def validate_cross_refs(cross_refs: list[str] | None) -> list[dict]:
+    """Deterministically validate a list of cross-reference strings."""
+    issues = []
+    for ref in cross_refs or []:
+        if not ref or not ref.strip():
+            continue
+        result = validate_reference(ref)
+        if not result["valid"]:
+            issues.append(
+                {"reference": ref, "reason": result["reason"], "severity": "high"}
+            )
+    return issues
+
+
+def build_consistency_prompt(
+    body: str, cross_refs: list[str] | None, translation: str, project_bodies: list[str] | None
+) -> str:
+    refs = ", ".join(ref for ref in (cross_refs or []) if ref) or "(none)"
+    other = "\n".join(f"--\n{b[:500]}" for b in (project_bodies or [])) or "(no other items)"
+    return f"""You are an editorial consistency checker for a Bible publishing house.
+
+The item body below is a {translation or "Bible"} editorial item that may include scripture quotes.
+Check for terminology drift: the same term/name rendered inconsistently (spelling, capitalization,
+or word order) within this item and across the other project items below.
+
+Item body:
+{body or "(empty)"}
+
+Other items in the same project:
+{other}
+
+Cross-references: {refs}
+
+Return ONLY a JSON object:
+{{"term_issues": [{{"term": "the canonical form", "count": <int>, "variants": ["all observed forms"],
+"reason": "how they diverge", "severity": "high|medium|low"}}]}}
+Leave term_issues empty if nothing is inconsistent. Do not include cross-reference validation here."""
+
+
+def _scan_variants(text: str, term: str, canon: str) -> list[str]:
+    pattern = re.compile(rf"\b{re.escape(term)}\b", re.IGNORECASE)
+    return sorted({m.group(0) for m in pattern.finditer(text)})
+
+
+def build_mock_consistency(
+    body: str, cross_refs: list[str] | None, project_bodies: list[str] | None
+) -> list[dict]:
+    joined = "\n".join([body or ""] + [b or "" for b in (project_bodies or [])])
+    term_issues = []
+    for term, canon in SACRED_TERMS:
+        variants = _scan_variants(joined, term, canon)
+        canon_count = len(re.findall(rf"\b{re.escape(canon)}\b", joined))
+        if len(variants) > 1 and canon_count > 0:
+            term_issues.append(
+                {
+                    "term": canon,
+                    "count": len(variants),
+                    "variants": variants,
+                    "reason": f"{canon} is used with inconsistent forms ({', '.join(variants)}).",
+                    "severity": "medium",
+                }
+            )
+    return term_issues
+
+
+def _consistency_score(ref_issues: list[dict], term_issues: list[dict]) -> int:
+    return max(0, 100 - sum(15 for _ in ref_issues) - sum(10 for _ in term_issues))
+
+
+async def _live_consistency_terms(
+    body: str, cross_refs: list[str] | None, translation: str, project_bodies: list[str] | None
+) -> list[dict]:
+    prompt = build_consistency_prompt(body, cross_refs, translation, project_bodies)
+    async with httpx.AsyncClient(timeout=60) as client:
+        response = await client.post(
+            url=ANTHROPIC_URL,
+            headers={
+                "x-api-key": settings.ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": ANTHROPIC_MODEL,
+                "max_tokens": 800,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+        text = data["content"][0]["text"]
+        return json.loads(text).get("term_issues", [])
+
+
+async def run_consistency_check(
+    body: str,
+    cross_refs: list[str] | None,
+    translation: str = "",
+    project_bodies: list[str] | None = None,
+) -> tuple[dict, bool]:
+    """Check cross-references and terminology consistency.
+
+    Returns (result_dict, is_demo). result_dict has keys "score",
+    "references_checked", "ref_issues", and "term_issues".
+    """
+    ref_issues = validate_cross_refs(cross_refs)
+    checked = len([ref for ref in (cross_refs or []) if ref and ref.strip()])
+
+    if not settings.ANTHROPIC_API_KEY:
+        term_issues = build_mock_consistency(body, cross_refs, project_bodies)
+        return (
+            {
+                "score": _consistency_score(ref_issues, term_issues),
+                "references_checked": checked,
+                "ref_issues": ref_issues,
+                "term_issues": term_issues,
+            },
+            True,
+        )
+
+    try:
+        term_issues = await _live_consistency_terms(body, cross_refs, translation, project_bodies)
+    except (httpx.HTTPStatusError, httpx.RequestError) as exc:
+        print(f"Consistency API error: {exc}")
+        term_issues = []
+    return (
+        {
+            "score": _consistency_score(ref_issues, term_issues),
+            "references_checked": checked,
+            "ref_issues": ref_issues,
+            "term_issues": term_issues,
+        },
+        False,
+    )
 
