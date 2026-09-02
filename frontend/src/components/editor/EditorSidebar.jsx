@@ -8,6 +8,7 @@ import {
   MessageSquare,
   ShieldCheck,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import CommentsPanel from "./CommentsPanel";
 import ConsistencyPanel from "./ConsistencyPanel";
 import DiffPanel from "./DiffPanel";
@@ -16,6 +17,17 @@ import StatusHistoryPanel from "./StatusHistoryPanel";
 import StylePanel from "./StylePanel";
 import TranslationsPanel from "./TranslationsPanel";
 import VersionsPanel from "./VersionsPanel";
+
+const PANELS = {
+  versions: VersionsPanel,
+  diff: DiffPanel,
+  translations: TranslationsPanel,
+  style: StylePanel,
+  qa: QAPanel,
+  consistency: ConsistencyPanel,
+  history: StatusHistoryPanel,
+  comments: CommentsPanel,
+};
 
 export default function EditorSidebar({ editor }) {
   const { activeTab, setActiveTab, versions, translations, history, comments } = editor;
@@ -35,6 +47,7 @@ export default function EditorSidebar({ editor }) {
     { id: "history", label: "History", icon: History, badge: history.length },
     { id: "comments", label: "Comments", icon: MessageSquare, badge: comments.length },
   ];
+  const ActivePanel = PANELS[activeTab];
 
   return (
     <div className="editor-panel sidebar-card">
@@ -47,6 +60,9 @@ export default function EditorSidebar({ editor }) {
             className={`sidebar-tab ${activeTab === tab.id ? "active" : ""}`}
             onClick={() => setActiveTab(tab.id)}
           >
+            {activeTab === tab.id && (
+              <motion.span className="tab-pill" layoutId="tab-pill" />
+            )}
             <tab.icon size={14} />
             {tab.label}
             {tab.badge != null && <span className="tab-count">{tab.badge}</span>}
@@ -54,14 +70,15 @@ export default function EditorSidebar({ editor }) {
         ))}
       </div>
       <div className="sidebar-content">
-        {activeTab === "versions" && <VersionsPanel editor={editor} />}
-        {activeTab === "diff" && <DiffPanel editor={editor} />}
-        {activeTab === "translations" && <TranslationsPanel editor={editor} />}
-        {activeTab === "style" && <StylePanel editor={editor} />}
-        {activeTab === "qa" && <QAPanel editor={editor} />}
-        {activeTab === "consistency" && <ConsistencyPanel editor={editor} />}
-        {activeTab === "history" && <StatusHistoryPanel editor={editor} />}
-        {activeTab === "comments" && <CommentsPanel editor={editor} />}
+        <motion.div
+          key={activeTab}
+          className="sidebar-tab-pane"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.16, ease: "easeOut" }}
+        >
+          {ActivePanel && <ActivePanel editor={editor} />}
+        </motion.div>
       </div>
     </div>
   );

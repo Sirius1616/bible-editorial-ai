@@ -48,9 +48,9 @@ Persistent theme toggle with system preference detection. Professional design sy
 | **Backend** | Python 3.12, FastAPI, SQLAlchemy 2.0 |
 | **Database** | PostgreSQL 16 |
 | **AI** | Anthropic Claude Haiku 4.5 (with offline demo mode) |
-| **Frontend** | React 18, Vite, React Router |
+| **Frontend** | React 18, Vite, React Router, framer-motion |
 | **Migrations** | Alembic |
-| **Testing** | pytest (57 tests), Vitest (32 tests) |
+| **Testing** | pytest (87 tests), Vitest (34 tests) |
 | **Containerization** | Docker / Docker Compose |
 
 ---

@@ -1,4 +1,5 @@
 import { Link2, Loader2, ScanSearch } from "lucide-react";
+import { AnimatedNumber, MotionItem, MotionList } from "../ui/motion";
 
 export default function ConsistencyPanel({ editor }) {
   const { consistencyResult, consistencyLoading, checkConsistency, crossRefsText } = editor;
@@ -32,7 +33,7 @@ export default function ConsistencyPanel({ editor }) {
         <span
           className={`badge ${score >= 90 ? "badge-approved" : score >= 70 ? "badge-type" : "badge-rejected"}`}
         >
-          {score}/100
+          <AnimatedNumber value={score} suffix="/100" />
         </span>
         <span className="muted" style={{ fontSize: "0.78rem" }}>
           {references_checked} reference(s) checked
@@ -60,15 +61,20 @@ export default function ConsistencyPanel({ editor }) {
               <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>
                 <Link2 size={12} /> Broken cross-references
               </p>
-              {ref_issues.map((issue, i) => (
-                <div key={`ref-${i}`} className={`style-issue severity-${issue.severity}`}>
-                  <div className="style-issue-head">
-                    <span className="badge badge-rejected">{issue.severity}</span>
-                    <span className="style-issue-snippet">{issue.reference}</span>
-                  </div>
-                  <p className="style-issue-reason">{issue.reason}</p>
-                </div>
-              ))}
+              <MotionList>
+                {ref_issues.map((issue, i) => (
+                  <MotionItem
+                    key={`ref-${i}`}
+                    className={`style-issue severity-${issue.severity}`}
+                  >
+                    <div className="style-issue-head">
+                      <span className="badge badge-rejected">{issue.severity}</span>
+                      <span className="style-issue-snippet">{issue.reference}</span>
+                    </div>
+                    <p className="style-issue-reason">{issue.reason}</p>
+                  </MotionItem>
+                ))}
+              </MotionList>
             </div>
           )}
           {hasTerms && (
@@ -76,18 +82,23 @@ export default function ConsistencyPanel({ editor }) {
               <p className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.35rem" }}>
                 <ScanSearch size={12} /> Terminology drift
               </p>
-              {term_issues.map((issue, i) => (
-                <div key={`term-${i}`} className={`style-issue severity-${issue.severity}`}>
-                  <div className="style-issue-head">
-                    <span className="badge badge-type">{issue.severity}</span>
-                    <span className="style-issue-snippet">{issue.term}</span>
-                  </div>
-                  <p className="style-issue-reason">{issue.reason}</p>
-                  <p className="muted" style={{ fontSize: "0.78rem", margin: "0.2rem 0 0" }}>
-                    Observed forms: {issue.variants.join(", ")}
-                  </p>
-                </div>
-              ))}
+              <MotionList>
+                {term_issues.map((issue, i) => (
+                  <MotionItem
+                    key={`term-${i}`}
+                    className={`style-issue severity-${issue.severity}`}
+                  >
+                    <div className="style-issue-head">
+                      <span className="badge badge-type">{issue.severity}</span>
+                      <span className="style-issue-snippet">{issue.term}</span>
+                    </div>
+                    <p className="style-issue-reason">{issue.reason}</p>
+                    <p className="muted" style={{ fontSize: "0.78rem", margin: "0.2rem 0 0" }}>
+                      Observed forms: {issue.variants.join(", ")}
+                    </p>
+                  </MotionItem>
+                ))}
+              </MotionList>
             </div>
           )}
         </div>

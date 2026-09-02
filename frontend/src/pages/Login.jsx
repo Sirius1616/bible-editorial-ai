@@ -1,4 +1,5 @@
 import { BookMarked, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { isAuthenticated, setToken } from "../api/client";
@@ -43,7 +44,12 @@ export default function Login() {
 
   return (
     <div className="auth-wrap">
-      <aside className="auth-brand">
+      <motion.aside
+        className="auth-brand"
+        initial={{ opacity: 0, x: -18 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div className="brand-lockup">
           <span className="brand-mark">
             <BookMarked size={18} />
@@ -72,11 +78,22 @@ export default function Login() {
         </div>
 
         <div className="brand-tagline">Built for Bible &amp; Christian book publishers</div>
-      </aside>
+      </motion.aside>
 
-      <div className="auth-panel">
+      <motion.div
+        className="auth-panel"
+        initial={{ opacity: 0, x: 24 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
+      >
         <div className="auth-card">
-          <h1>{mode === "login" ? "Welcome back" : "Create your account"}</h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18, duration: 0.35, ease: "easeOut" }}
+          >
+            {mode === "login" ? "Welcome back" : "Create your account"}
+          </motion.h1>
           <p className="sub">
             {mode === "login"
               ? "Log in to continue to your editorial workspace."
@@ -146,7 +163,7 @@ export default function Login() {
             )}
           </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

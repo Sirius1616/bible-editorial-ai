@@ -135,6 +135,15 @@ in parallel internally; phases run in order because later phases depend on earli
   (`stream: true`); demo mode yields word chunks on a small delay. The streamed draft is NOT
   auto-saved — the user presses "Save new version" to keep it. The non-streaming `POST /draft`
   endpoint remains (auto-saves a version) with its existing tests.
+- ✅ **UI motion pass — "Editorial + Hybrid"** (2026-09-02): added `framer-motion` 13 for
+  micro-interactions while keeping the scholarly serif identity. Page routes fade/slide up,
+  login panel + brand slide in with a drifting gradient, sidebar tabs get an animated active
+  "pill" + pane glide, project cards and version cards stagger in, stat/QA/style/consistency
+  scores count up (single text node for tests), AI-draft textarea glows with a caret + animated
+  indeterminate progress bar while streaming, buttons press down on click and cards lift on
+  hover. Honors `prefers-reduced-motion` (CSS guard + `MotionConfig reducedMotion="user"`);
+  tests run with `MotionGlobalConfig.skipAnimations` so the suite stays synchronous. 34 Vitest /
+  87 pytest passing, lint 0 errors (12 pre-existing warnings), build clean.
 - ✅ #27 Translation comparison sidebar: `GET .../items/{item_id}/translations` uses the item's
   verse anchor → KJV/WEB (public domain) always, plus ESV/NIV/NASB/NLT slots. Real mode fetches
   all five via api.bible (Scripture API) when `BIBLE_API_KEY` is set; demo mode serves a bundled

@@ -1,4 +1,5 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { MotionConfig, motion } from "framer-motion";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { isAuthenticated } from "./api/client";
 import { ThemeProvider } from "./theme";
 import Editor from "./pages/Editor";
@@ -14,11 +15,16 @@ function RequireAuth({ children }) {
   return children;
 }
 
-export default function App() {
+function AnimatedRoutes() {
+  const location = useLocation();
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <Routes>
+    <motion.div
+      key={location.pathname}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <Routes location={location}>
           <Route path="/login" element={<Login />} />
           <Route path="/invite/:token" element={<Invite />} />
           <Route
@@ -64,7 +70,18 @@ export default function App() {
           <Route path="/" element={<Navigate to="/projects" replace />} />
           <Route path="*" element={<Navigate to="/projects" replace />} />
         </Routes>
-      </BrowserRouter>
+      </motion.div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <MotionConfig reducedMotion="user">
+        <BrowserRouter>
+          <AnimatedRoutes />
+        </BrowserRouter>
+      </MotionConfig>
     </ThemeProvider>
   );
 }

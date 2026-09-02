@@ -95,6 +95,12 @@ export default function ContentEditor({ editor }) {
         </div>
       </div>
 
+      {drafting && (
+        <div className="stream-progress" aria-hidden="true">
+          <span />
+        </div>
+      )}
+
       <form onSubmit={saveVersion}>
         {styleMarksOn ? (
           <div
@@ -156,7 +162,7 @@ export default function ContentEditor({ editor }) {
           </div>
         ) : (
           <textarea
-            className="editor-textarea"
+            className={`editor-textarea${drafting ? " streaming" : ""}`}
             ref={editorRef}
             value={body}
             readOnly={!editable}
@@ -212,7 +218,7 @@ export default function ContentEditor({ editor }) {
           <div className="row">
             {saved && <span className="badge badge-approved">Saved</span>}
             {editable ? (
-              <button type="submit" className="primary" disabled={saving}>
+              <button type="submit" className="primary" disabled={saving || drafting}>
                 {saving ? <Loader2 size={16} className="spinner" /> : <Save size={16} />}
                 Save new version
               </button>

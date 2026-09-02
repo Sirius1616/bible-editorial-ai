@@ -3,6 +3,8 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: 1.1fr 1fr;
+  position: relative;
+  overflow: hidden;
 }
 
 .auth-brand {
@@ -71,7 +73,21 @@
   display: grid;
   place-items: center;
   padding: 2rem;
-  background: var(--bg);
+  background:
+    radial-gradient(560px 360px at 18% 12%, rgba(99, 102, 241, 0.12), transparent 55%),
+    radial-gradient(520px 400px at 85% 88%, rgba(180, 83, 9, 0.1), transparent 55%),
+    var(--bg);
+  background-size: 170% 170%, 170% 170%, auto;
+  animation: auth-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes auth-drift {
+  from {
+    background-position: 0% 0%, 100% 100%, 0 0;
+  }
+  to {
+    background-position: 28% 18%, 72% 82%, 0 0;
+  }
 }
 
 .auth-card {

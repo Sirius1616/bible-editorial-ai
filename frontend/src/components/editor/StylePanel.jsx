@@ -1,3 +1,5 @@
+import { AnimatedNumber, MotionItem, MotionList } from "../ui/motion";
+
 export default function StylePanel({ editor }) {
   const { styleResult, styleMarksOn, setStyleMarksOn } = editor;
 
@@ -8,7 +10,7 @@ export default function StylePanel({ editor }) {
           <span
             className={`badge ${styleResult.score >= 90 ? "badge-approved" : styleResult.score >= 70 ? "badge-type" : "badge-rejected"}`}
           >
-            {styleResult.score}/100
+            <AnimatedNumber value={styleResult.score} suffix="/100" />
           </span>
         </div>
       )}
@@ -27,17 +29,20 @@ export default function StylePanel({ editor }) {
               ? "Demo rules (add ANTHROPIC_API_KEY for AI review)."
               : "AI review against the project style guide."}
           </p>
-          <div>
+          <MotionList>
             {styleResult.issues.map((issue, i) => (
-              <div key={i} className={`style-issue severity-${issue.severity}`}>
+              <MotionItem
+                key={i}
+                className={`style-issue severity-${issue.severity}`}
+              >
                 <div className="style-issue-head">
                   <span className="badge badge-type">{issue.severity}</span>
                   <span className="style-issue-snippet">“{issue.snippet}”</span>
                 </div>
                 <p className="style-issue-reason">{issue.reason}</p>
-              </div>
+              </MotionItem>
             ))}
-          </div>
+          </MotionList>
           <button
             className="link-button"
             style={{ marginTop: "0.5rem" }}

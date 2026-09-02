@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
+import { AnimatedNumber, MotionItem, MotionList } from "../components/ui/motion";
 import { itemsApi, projectsApi, workspacesApi } from "../api";
 
 function ProjectCard({ project, items, onOpen }) {
@@ -21,7 +22,7 @@ function ProjectCard({ project, items, onOpen }) {
   const pct = total ? Math.round((ready / total) * 100) : 0;
 
   return (
-    <div className="project-card" onClick={() => onOpen(project.id)}>
+    <MotionItem className="project-card" onClick={() => onOpen(project.id)}>
       <div className="project-card-head">
         <span className="project-card-title">{project.name}</span>
         <span className="badge badge-neutral">{project.translation}</span>
@@ -53,7 +54,7 @@ function ProjectCard({ project, items, onOpen }) {
           </div>
         </>
       )}
-    </div>
+    </MotionItem>
   );
 }
 
@@ -263,7 +264,9 @@ export default function Projects() {
               <BookOpen size={20} />
             </span>
             <div>
-              <div className="stat-value">{stats.items}</div>
+              <div className="stat-value">
+                <AnimatedNumber value={stats.items} />
+              </div>
               <div className="stat-label">Total items</div>
             </div>
           </div>
@@ -272,7 +275,9 @@ export default function Projects() {
               <FileText size={20} />
             </span>
             <div>
-              <div className="stat-value">{stats.active}</div>
+              <div className="stat-value">
+                <AnimatedNumber value={stats.active} />
+              </div>
               <div className="stat-label">Active</div>
             </div>
           </div>
@@ -281,7 +286,9 @@ export default function Projects() {
               <CheckCircle2 size={20} />
             </span>
             <div>
-              <div className="stat-value">{stats.ready}</div>
+              <div className="stat-value">
+                <AnimatedNumber value={stats.ready} />
+              </div>
               <div className="stat-label">Ready</div>
             </div>
           </div>
@@ -290,7 +297,9 @@ export default function Projects() {
               <XCircle size={20} />
             </span>
             <div>
-              <div className="stat-value">{stats.archived}</div>
+              <div className="stat-value">
+                <AnimatedNumber value={stats.archived} />
+              </div>
               <div className="stat-label">Archived</div>
             </div>
           </div>
@@ -320,7 +329,7 @@ export default function Projects() {
           </div>
         </div>
       ) : (
-        <div className="project-grid">
+        <MotionList className="project-grid">
           {projects.map((p) => (
             <ProjectCard
               key={p.id}
@@ -329,7 +338,7 @@ export default function Projects() {
               onOpen={(id) => navigate(`/projects/${id}`)}
             />
           ))}
-        </div>
+        </MotionList>
       )}
     </AppLayout>
   );

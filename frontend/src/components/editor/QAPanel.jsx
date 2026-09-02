@@ -1,4 +1,5 @@
 import { BookOpen, Loader2 } from "lucide-react";
+import { AnimatedNumber, MotionItem, MotionList } from "../ui/motion";
 
 export default function QAPanel({ editor }) {
   const { qaResult, qaLoading, checkQA, item } = editor;
@@ -32,7 +33,7 @@ export default function QAPanel({ editor }) {
         <span
           className={`badge ${qaResult.score >= 90 ? "badge-approved" : qaResult.score >= 70 ? "badge-type" : "badge-rejected"}`}
         >
-          {qaResult.score}/100
+          <AnimatedNumber value={qaResult.score} suffix="/100" />
         </span>
       </div>
 
@@ -55,30 +56,35 @@ export default function QAPanel({ editor }) {
             {qaResult.issues.length} quote mismatch{qaResult.issues.length > 1 ? "es" : ""} found:
           </p>
           <div style={{ maxHeight: "18rem", overflowY: "auto", paddingRight: "0.25rem" }}>
-            {qaResult.issues.map((issue, i) => (
-              <div key={i} className={`style-issue severity-${issue.severity}`}>
-                <div className="style-issue-head">
-                  <span className="badge badge-type">{issue.severity}</span>
-                  <span className="style-issue-snippet">“{issue.snippet}”</span>
-                </div>
-                <p className="style-issue-reason">{issue.reason}</p>
-                <details style={{ marginTop: "0.35rem" }}>
-                  <summary className="link-button" style={{ fontSize: "0.8rem" }}>
-                    Expected vs quoted
-                  </summary>
-                  <div style={{ fontSize: "0.8rem", marginTop: "0.3rem", display: "grid", gap: "0.3rem" }}>
-                    <div>
-                      <span style={{ fontWeight: 600 }}>Expected ({issue.reference}): </span>
-                      <span className="muted">{issue.expected}</span>
-                    </div>
-                    <div>
-                      <span style={{ fontWeight: 600 }}>Quoted: </span>
-                      <span className="muted">{issue.actual}</span>
-                    </div>
+            <MotionList>
+              {qaResult.issues.map((issue, i) => (
+                <MotionItem
+                  key={i}
+                  className={`style-issue severity-${issue.severity}`}
+                >
+                  <div className="style-issue-head">
+                    <span className="badge badge-type">{issue.severity}</span>
+                    <span className="style-issue-snippet">“{issue.snippet}”</span>
                   </div>
-                </details>
-              </div>
-            ))}
+                  <p className="style-issue-reason">{issue.reason}</p>
+                  <details style={{ marginTop: "0.35rem" }}>
+                    <summary className="link-button" style={{ fontSize: "0.8rem" }}>
+                      Expected vs quoted
+                    </summary>
+                    <div style={{ fontSize: "0.8rem", marginTop: "0.3rem", display: "grid", gap: "0.3rem" }}>
+                      <div>
+                        <span style={{ fontWeight: 600 }}>Expected ({issue.reference}): </span>
+                        <span className="muted">{issue.expected}</span>
+                      </div>
+                      <div>
+                        <span style={{ fontWeight: 600 }}>Quoted: </span>
+                        <span className="muted">{issue.actual}</span>
+                      </div>
+                    </div>
+                  </details>
+                </MotionItem>
+              ))}
+            </MotionList>
           </div>
         </div>
       )}
