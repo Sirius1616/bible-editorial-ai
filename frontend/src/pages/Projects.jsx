@@ -13,7 +13,6 @@ import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import { AnimatedNumber, MotionItem, MotionList } from "../components/ui/motion";
 import { itemsApi, projectsApi, workspacesApi } from "../api";
-import Verse from "../components/ui/Verse";
 
 function ProjectCard({ project, items, onOpen }) {
   const total = items.length;
@@ -145,7 +144,7 @@ export default function Projects() {
       <div className="page-head">
         <div>
           <div className="title-row">
-            <h1 className="head-rule">Your projects</h1>
+            <h1>Your projects</h1>
             <span className="badge badge-neutral">{projects.length} total</span>
           </div>
           <p className="sub">Manage editorial projects and track approval progress.</p>
@@ -327,12 +326,6 @@ export default function Projects() {
             <button className="primary" onClick={() => setShowForm(true)}>
               <Plus size={16} /> Create your first project
             </button>
-            <div style={{ maxWidth: 460, margin: "2rem auto 0" }}>
-              <Verse
-                text="Commit thy works unto the LORD, and thy thoughts shall be established."
-                reference="Proverbs 16:3"
-              />
-            </div>
           </div>
         </div>
       ) : (

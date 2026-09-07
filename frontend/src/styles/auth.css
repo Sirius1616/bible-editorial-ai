@@ -9,8 +9,8 @@
 
 .auth-brand {
   background:
-    linear-gradient(160deg, var(--navy-900), var(--navy-800)),
-    radial-gradient(700px 420px at 85% 12%, rgba(224, 174, 74, 0.2), transparent 55%),
+    linear-gradient(160deg, rgba(23, 18, 48, 0.92), rgba(30, 40, 90, 0.88)),
+    radial-gradient(700px 420px at 85% 12%, rgba(201, 162, 39, 0.2), transparent 55%),
     url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.035'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   color: #fff;
   padding: 3rem;
@@ -59,14 +59,14 @@
   line-height: 1.6;
 }
 
-.auth-hero .verse-accent {
+.auth-hero .quote {
   margin-top: 2.2rem;
-  color: rgba(255, 255, 255, 0.92);
-  border-top-color: var(--gold-line);
-}
-
-.auth-hero .verse-accent .verse-ref {
-  color: rgba(217, 180, 76, 0.92);
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(217, 180, 76, 0.32);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .auth-panel {
