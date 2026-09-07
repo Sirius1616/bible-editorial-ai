@@ -135,6 +135,122 @@
   font-weight: 600;
 }
 
+/* ── Flowing gold ribbons at viewport edges ─────────────────────────── */
+
+.auth-wrap::before,
+.auth-wrap::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(201, 162, 39, 0.1) 12%,
+    rgba(217, 180, 76, 0.6) 50%,
+    rgba(201, 162, 39, 0.1) 88%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: ribbon-flow 3.5s linear infinite;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.auth-wrap::before { top: 0; }
+.auth-wrap::after  { bottom: 0; }
+
+@keyframes ribbon-flow {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+
+/* ── TypewriterDemo — live AI writing in the brand panel ───────────── */
+
+.tw-demo {
+  margin-top: 1.4rem;
+  padding: 1rem 1.2rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(217, 180, 76, 0.2);
+  border-radius: 10px;
+  min-height: 8rem;
+}
+
+.tw-stage {
+  transition: opacity 0.45s ease;
+}
+
+.tw-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
+}
+
+.tw-verse {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: rgba(217, 180, 76, 0.95);
+}
+
+.tw-badge {
+  font-family: var(--font-ui);
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.07);
+  padding: 0.18rem 0.55rem;
+  border-radius: 100px;
+}
+
+.tw-body {
+  color: rgba(255, 255, 255, 0.88);
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  min-height: 3rem;
+}
+
+.tw-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  background: rgba(217, 180, 76, 0.9);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: tw-blink 1s step-end infinite;
+}
+
+@keyframes tw-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+.tw-done {
+  margin-top: 0.55rem;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(90, 200, 120, 0.92);
+  animation: tw-pop 0.3s ease-out;
+}
+
+.tw-check {
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
+
+@keyframes tw-pop {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+
 @media (max-width: 860px) {
   .auth-wrap {
     grid-template-columns: 1fr;

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { isAuthenticated, setToken } from "../api/client";
 import { authApi } from "../api";
+import { TypewriterDemo } from "../components/ui/TypewriterDemo";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -68,6 +69,9 @@ export default function Login() {
             guide. Review versions, capture editorial comments, and approve work — all in one
             studio built for Bible publishers.
           </p>
+
+          <TypewriterDemo />
+
           <blockquote className="quote">
             "Your word is a lamp to my feet and a light to my path."
             <br />
