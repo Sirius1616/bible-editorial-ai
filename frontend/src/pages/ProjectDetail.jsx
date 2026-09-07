@@ -207,7 +207,7 @@ export default function ProjectDetail() {
       <div className="page-head">
         <div>
           <div className="title-row">
-            <h1>{project.name}</h1>
+            <h1 className="head-rule">{project.name}</h1>
             <span className="badge badge-neutral">{project.translation}</span>
             {project.style_guide && (
               <span className="badge badge-type">Style: {project.style_guide}</span>

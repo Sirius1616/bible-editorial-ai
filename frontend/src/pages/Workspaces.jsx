@@ -56,7 +56,7 @@ export default function Workspaces() {
       <div className="page-head">
         <div>
           <div className="title-row">
-            <h1>Workspaces</h1>
+            <h1 className="head-rule">Workspaces</h1>
             <span className="badge badge-neutral">{workspaces.length} total</span>
           </div>
           <p className="sub">

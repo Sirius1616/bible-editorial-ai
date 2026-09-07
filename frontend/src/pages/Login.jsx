@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { isAuthenticated, setToken } from "../api/client";
 import { authApi } from "../api";
+import { VerseFade } from "../components/ui/Verse";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -68,13 +69,10 @@ export default function Login() {
             guide. Review versions, capture editorial comments, and approve work — all in one
             studio built for Bible publishers.
           </p>
-          <blockquote className="quote">
-            "Your word is a lamp to my feet and a light to my path."
-            <br />
-            <span style={{ fontSize: "0.85rem", fontStyle: "normal", opacity: 0.8 }}>
-              — Psalm 119:105
-            </span>
-          </blockquote>
+          <VerseFade
+            text="Your word is a lamp to my feet and a light to my path."
+            reference="Psalm 119:105"
+          />
         </div>
 
         <div className="brand-tagline">Built for Bible &amp; Christian book publishers</div>

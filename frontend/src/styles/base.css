@@ -37,6 +37,29 @@
 
   --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Lora", Georgia, "Times New Roman", serif;
+
+  /* ---- Bible design language ----
+     Deep indigo/navy grounds the brand (the "parchment night" backdrop used on the
+     login brand panel), while a warm gold acts as the signature scripture accent.
+     --gold and --parchment pair for verse quotes / highlights; --navy surfaces
+     give pages a quieter, editorial feel. */
+  --navy-900: #17122f;
+  --navy-800: #1e284f;
+  --navy-700: #273458;
+  --navy-ink: #1b1730;
+
+  --gold: #e0ae4a;
+  --gold-strong: #c99a2f;
+  --gold-soft: rgba(224, 174, 74, 0.14);
+  --gold-line: rgba(224, 174, 74, 0.35);
+  --gold-text: #b1841f;
+
+  --parchment: #fbf6ec;
+  --parchment-ink: #3a3224;
+
+  /* Scripture accent applied to focus rings so interactive elements read as
+     "the editorial quill" rather than a generic blue. Overridden per theme below. */
+  --focus-ring: rgba(79, 70, 229, 0.16);
 }
 
 [data-theme="dark"] {
@@ -73,6 +96,14 @@
   --danger-border: #6b3538;
   --info-border: #33507e;
   --success-border: #24523a;
+
+  --gold: #e0ae4a;
+  --gold-strong: #f0c25e;
+  --gold-soft: rgba(224, 174, 74, 0.16);
+  --gold-line: rgba(240, 194, 94, 0.4);
+  --gold-text: #e8c06a;
+  --parchment: #221d14;
+  --parchment-ink: #f4ecd8;
 }
 
 * {
@@ -181,13 +212,13 @@ button.primary:hover:not(:disabled) {
 }
 
 button.accent {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #2a2312;
 }
 
 button.accent:hover:not(:disabled) {
-  background: #92400e;
+  background: var(--gold-strong);
 }
 
 button.danger {
@@ -406,6 +437,49 @@ label {
 }
 
 /* ---------- Motion & micro-interactions ---------- */
+
+/* ---- Scripture accent (Verse) ----
+   Serif, gold-ruled verse callout. Renders as paper/parchment with a warm gold
+   top-rule so the scripture identity is consistent anywhere it appears. */
+.verse-accent {
+  margin: 0;
+  padding: 1.4rem 0 0 0;
+  border-top: 2px solid var(--gold-line);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.verse-accent .verse-ref {
+  display: block;
+  margin-top: 0.5rem;
+  font-family: var(--font-ui);
+  font-style: normal;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--gold-text);
+}
+
+/* Editorial section rule — a short gold "quill stroke" under prominent headings. */
+.head-rule {
+  position: relative;
+  padding-bottom: 0.35rem;
+}
+
+.head-rule::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2.25rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--gold);
+  opacity: 0.85;
+}
 
 .progress-track {
   transition: box-shadow 0.2s ease;
