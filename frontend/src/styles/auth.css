@@ -143,13 +143,13 @@
   position: fixed;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 4px;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(201, 162, 39, 0.1) 12%,
-    rgba(217, 180, 76, 0.6) 50%,
-    rgba(201, 162, 39, 0.1) 88%,
+    rgba(201, 162, 39, 0.08) 12%,
+    rgba(217, 180, 76, 0.55) 50%,
+    rgba(201, 162, 39, 0.08) 88%,
     transparent 100%
   );
   background-size: 200% 100%;
