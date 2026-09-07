@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { buildAnnotatedParts, buildStyleParts } from "../../lib/annotations";
 import { canEdit } from "../../permissions";
-import { CaretBlink, HaloGlow } from "../ui/SacredMotif";
 
 export default function ContentEditor({ editor }) {
   const {
@@ -97,12 +96,8 @@ export default function ContentEditor({ editor }) {
       </div>
 
       {drafting && (
-        <div className="write-indicator" aria-hidden="true">
-          <span className="write-indicator-lamp">
-            <HaloGlow />
-          </span>
-          <span className="write-indicator-label">The AI is writing</span>
-          <CaretBlink />
+        <div className="stream-progress" aria-hidden="true">
+          <span />
         </div>
       )}
 

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { isAuthenticated, setToken } from "../api/client";
 import { authApi } from "../api";
-import { HaloGlow, PressDawn } from "../components/ui/SacredMotif";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -51,9 +50,7 @@ export default function Login() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
-        <PressDawn />
-        <div className="auth-brand-inner">
-          <div className="brand-lockup">
+        <div className="brand-lockup">
           <span className="brand-mark">
             <BookMarked size={18} />
           </span>
@@ -71,22 +68,16 @@ export default function Login() {
             guide. Review versions, capture editorial comments, and approve work — all in one
             studio built for Bible publishers.
           </p>
-          <div className="auth-quote">
-            <span className="auth-quote-glow">
-              <HaloGlow />
+          <blockquote className="quote">
+            "Your word is a lamp to my feet and a light to my path."
+            <br />
+            <span style={{ fontSize: "0.85rem", fontStyle: "normal", opacity: 0.8 }}>
+              — Psalm 119:105
             </span>
-            <blockquote className="quote">
-              "Your word is a lamp to my feet and a light to my path."
-              <br />
-              <span style={{ fontSize: "0.85rem", fontStyle: "normal", opacity: 0.8 }}>
-                — Psalm 119:105
-              </span>
-            </blockquote>
-          </div>
+          </blockquote>
         </div>
 
         <div className="brand-tagline">Built for Bible &amp; Christian book publishers</div>
-        </div>
       </motion.aside>
 
       <motion.div

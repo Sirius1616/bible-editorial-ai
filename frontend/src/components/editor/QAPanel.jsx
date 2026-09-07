@@ -1,6 +1,5 @@
 import { BookOpen, Loader2 } from "lucide-react";
 import { AnimatedNumber, MotionItem, MotionList } from "../ui/motion";
-import { ReviewFlow } from "../ui/SacredMotif";
 
 export default function QAPanel({ editor }) {
   const { qaResult, qaLoading, checkQA, item } = editor;
@@ -8,7 +7,6 @@ export default function QAPanel({ editor }) {
   if (qaLoading) {
     return (
       <div>
-        <ReviewFlow loading={qaLoading} value={null} />
         <div className="row" style={{ gap: "0.4rem" }}>
           <Loader2 size={16} className="spinner" /> Running Scripture QA…
         </div>
@@ -38,8 +36,6 @@ export default function QAPanel({ editor }) {
           <AnimatedNumber value={qaResult.score} suffix="/100" />
         </span>
       </div>
-
-      <ReviewFlow loading={false} value={qaResult.score} />
 
       {qaResult.demo && (
         <div

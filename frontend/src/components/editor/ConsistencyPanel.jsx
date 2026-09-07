@@ -1,6 +1,5 @@
 import { Link2, Loader2, ScanSearch } from "lucide-react";
 import { AnimatedNumber, MotionItem, MotionList } from "../ui/motion";
-import { ReviewFlow } from "../ui/SacredMotif";
 
 export default function ConsistencyPanel({ editor }) {
   const { consistencyResult, consistencyLoading, checkConsistency, crossRefsText } = editor;
@@ -8,7 +7,6 @@ export default function ConsistencyPanel({ editor }) {
   if (consistencyLoading) {
     return (
       <div>
-        <ReviewFlow loading={consistencyLoading} value={null} />
         <div className="row" style={{ gap: "0.4rem" }}>
           <Loader2 size={16} className="spinner" /> Checking references &amp; terminology…
         </div>
@@ -41,8 +39,6 @@ export default function ConsistencyPanel({ editor }) {
           {references_checked} reference(s) checked
         </span>
       </div>
-
-      <ReviewFlow loading={false} value={score} />
 
       {demo && (
         <div
