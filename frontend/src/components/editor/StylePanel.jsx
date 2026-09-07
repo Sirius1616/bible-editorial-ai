@@ -1,4 +1,4 @@
-import { AnimatedNumber, MotionItem, MotionList } from "../ui/motion";
+import { AnimatedNumber, MotionItem, MotionList, ScoreRing } from "../ui/motion";
 
 export default function StylePanel({ editor }) {
   const { styleResult, styleMarksOn, setStyleMarksOn } = editor;
@@ -6,7 +6,8 @@ export default function StylePanel({ editor }) {
   return (
     <div id="style-panel">
       {styleResult && (
-        <div className="panel-actions">
+        <div className="panel-actions" style={{ flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
+          <ScoreRing value={styleResult.score} label="100" />
           <span
             className={`badge ${styleResult.score >= 90 ? "badge-approved" : styleResult.score >= 70 ? "badge-type" : "badge-rejected"}`}
           >

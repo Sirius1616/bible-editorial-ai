@@ -423,6 +423,28 @@ label {
   gap: 0.8rem;
 }
 
+.loading-block .spinner,
+.loading-block > svg {
+  animation: spin 0.7s linear infinite;
+  color: var(--accent);
+}
+
+.empty-state .empty-icon {
+  animation: pulse-soft 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
+}
+
 .skeleton {
   border-radius: var(--radius);
   background: linear-gradient(90deg, var(--border) 25%, var(--surface-2) 50%, var(--border) 75%);
@@ -499,12 +521,44 @@ label {
   padding: 1rem 0;
 }
 
+.stream-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.7rem;
+}
+
+.stream-caret {
+  width: 2px;
+  height: 15px;
+  border-radius: 999px;
+  background: var(--primary);
+  animation: caret-blink 0.9s steps(2, start) infinite;
+}
+
+.stream-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
 .stream-progress {
+  flex: 1;
   height: 2px;
   overflow: hidden;
   background: var(--primary-soft);
   border-radius: 999px;
-  margin: 0 1px 0.7rem;
 }
 
 .stream-progress span {
@@ -523,6 +577,57 @@ label {
   to {
     transform: translateX(330%);
   }
+}
+
+/* ---- Animated score ring ---- */
+.score-ring {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.score-ring-track {
+  stroke: var(--border);
+}
+
+.score-ring-value {
+  transition: stroke 0.2s ease;
+}
+
+.score-ring.good .score-ring-value {
+  stroke: var(--success);
+}
+
+.score-ring.mid .score-ring-value {
+  stroke: var(--gold);
+}
+
+.score-ring.bad .score-ring-value {
+  stroke: var(--danger);
+}
+
+.score-ring-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.score-ring-label strong {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.score-ring-label small {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 @media (prefers-reduced-motion: reduce) {

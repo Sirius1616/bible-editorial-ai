@@ -96,8 +96,12 @@ export default function ContentEditor({ editor }) {
       </div>
 
       {drafting && (
-        <div className="stream-progress" aria-hidden="true">
-          <span />
+        <div className="stream-indicator" aria-hidden="true">
+          <span className="stream-caret" />
+          <span className="stream-label">AI is writing…</span>
+          <span className="stream-progress">
+            <span />
+          </span>
         </div>
       )}
 
