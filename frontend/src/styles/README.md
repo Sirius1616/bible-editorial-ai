@@ -60,6 +60,17 @@ Auto-advancing verse-of-the-day deck (5s per slide, pauses on hover, animated
 progress lane restarts per slide).
 Used: `Projects.jsx` empty state.
 
+### PageFlip
+An open Bible whose golden pages continuously leaf over (8-page CSS 3D
+flipbook, 3.6s cycle, staggered 0.45s per page). A hero background motif —
+bold, unmissable, yet still just decoration (aria-hidden, pointer-events-none).
+Used: `Login.jsx` brand panel.
+
+### ScriptFade
+Large scripture verses that slowly fade in and out (2.4s opacity/transform
+ease, 6.4s cycle). Ambient text — decorative, never on-the-page copy.
+Used: `Login.jsx` brand panel.
+
 ### ManuscriptShimmer
 One-shot gold sweep on an ornamental initial cap (library-only, not yet wired).
 

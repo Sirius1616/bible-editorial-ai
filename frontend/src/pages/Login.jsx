@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { isAuthenticated, setToken } from "../api/client";
 import { authApi } from "../api";
-import { HaloGlow, PressDawn } from "../components/ui/SacredMotif";
+import { HaloGlow, PageFlip, PressDawn, ScriptFade } from "../components/ui/SacredMotif";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -52,6 +52,16 @@ export default function Login() {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
         <PressDawn />
+        <PageFlip className="auth-flipbook" />
+        <ScriptFade
+          className="auth-scriptfade"
+          verses={[
+            { text: "The unfolding of your words gives light; it imparts understanding to the simple.", ref: "Psalm 119:130" },
+            { text: "Let the words of my mouth and the meditation of my heart be acceptable in your sight.", ref: "Psalm 19:14" },
+            { text: "Your word is a lamp to my feet and a light to my path.", ref: "Psalm 119:105" },
+            { text: "All Scripture is breathed out by God and profitable for teaching.", ref: "2 Timothy 3:16" },
+          ]}
+        />
         <div className="auth-brand-inner">
           <div className="brand-lockup">
           <span className="brand-mark">
