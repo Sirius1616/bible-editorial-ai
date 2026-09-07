@@ -1,8 +1,51 @@
 /* ---------- Layout ---------- */
 .layout {
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background:
+    radial-gradient(600px 320px at 12% -4%, rgba(224, 174, 74, 0.05), transparent 60%),
+    radial-gradient(720px 420px at 88% 6%, rgba(79, 70, 229, 0.06), transparent 62%),
+    var(--bg);
+  background-size: 100% 100%, 100% 100%, auto;
+  animation: layout-aurora 26s ease-in-out infinite alternate;
+}
+
+@keyframes layout-aurora {
+  0% {
+    background-position: 0% 0%, 0% 0%, 0 0;
+  }
+  100% {
+    background-position: 18% 6%, -12% 10%, 0 0;
+  }
+}
+
+.layout::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: radial-gradient(rgba(224, 174, 74, 0.5) 1px, transparent 1.6px);
+  background-size: 96px 96px;
+  background-position: 0 0;
+  animation: layout-motefall 50s linear infinite;
+  opacity: 0.05;
+}
+
+@keyframes layout-motefall {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 480px;
+  }
+}
+
+.layout > * {
+  position: relative;
+  z-index: 1;
 }
 
 .topbar {
@@ -34,6 +77,17 @@
   background: var(--primary);
   color: var(--surface);
   box-shadow: var(--shadow-sm);
+  animation: brand-breathe 3.6s ease-in-out infinite;
+}
+
+@keyframes brand-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(224, 174, 74, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(224, 174, 74, 0.35), 0 6px 18px rgba(224, 174, 74, 0.3);
+  }
 }
 
 .brand-name {

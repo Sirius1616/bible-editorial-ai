@@ -118,7 +118,11 @@ describe("Editor inline / verse-level comments", () => {
     expect(screen.getByText("\u201cGrace\u201d")).toBeInTheDocument();
     expect(screen.getAllByText("John 1:14").length).toBeGreaterThan(0);
 
-    const mark = await waitFor(() => document.querySelector('[data-comment-id="1"]'));
+    const mark = await waitFor(() => {
+      const m = document.querySelector('[data-comment-id="1"]');
+      expect(m).not.toBeNull();
+      return m;
+    });
     expect(mark).toBeInTheDocument();
     expect(mark.textContent).toBe("Grace");
   });
