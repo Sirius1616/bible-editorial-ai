@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import { AnimatedNumber, MotionItem, MotionList } from "../components/ui/motion";
+import { Flyleaf, InkLine } from "../components/ui/SacredMotif";
 import { itemsApi, projectsApi, workspacesApi } from "../api";
 
 function ProjectCard({ project, items, onOpen }) {
@@ -162,6 +163,8 @@ export default function Projects() {
           </button>
         </div>
       </div>
+
+      <InkLine />
 
       {error && <div className="alert alert-error">{error}</div>}
 
@@ -326,6 +329,14 @@ export default function Projects() {
             <button className="primary" onClick={() => setShowForm(true)}>
               <Plus size={16} /> Create your first project
             </button>
+            <Flyleaf
+              className="empty-flyleaf"
+              verses={[
+                { text: "Your word is a lamp to my feet and a light to my path.", ref: "Psalm 119:105" },
+                { text: "Let the words of my mouth and the meditation of my heart be acceptable in your sight, O LORD.", ref: "Psalm 19:14" },
+                { text: "The unfolding of your words gives light; it imparts understanding to the simple.", ref: "Psalm 119:130" },
+              ]}
+            />
           </div>
         </div>
       ) : (
