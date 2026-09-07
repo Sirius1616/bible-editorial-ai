@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { isAuthenticated, setToken } from "../api/client";
 import { authApi } from "../api";
-import Motes from "../components/ui/Motes";
 import { VerseFade } from "../components/ui/Verse";
 
 export default function Login() {
@@ -52,7 +51,6 @@ export default function Login() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
-        <Motes />
         <div className="brand-lockup">
           <span className="brand-mark">
             <BookMarked size={18} />

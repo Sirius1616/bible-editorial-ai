@@ -1,5 +1,5 @@
 import { Link2, Loader2, ScanSearch } from "lucide-react";
-import { AnimatedNumber, MotionItem, MotionList, ScoreRing } from "../ui/motion";
+import { AnimatedNumber, MotionItem, MotionList } from "../ui/motion";
 
 export default function ConsistencyPanel({ editor }) {
   const { consistencyResult, consistencyLoading, checkConsistency, crossRefsText } = editor;
@@ -29,8 +29,7 @@ export default function ConsistencyPanel({ editor }) {
 
   return (
     <div id="consistency-panel">
-      <div className="panel-actions" style={{ flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
-        <ScoreRing value={score} label="100" />
+      <div className="panel-actions">
         <span
           className={`badge ${score >= 90 ? "badge-approved" : score >= 70 ? "badge-type" : "badge-rejected"}`}
         >

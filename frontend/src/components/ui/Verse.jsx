@@ -5,11 +5,13 @@ import { motion } from "framer-motion";
  * "parchment & quill" identity through the app (login brand, empty states, etc.).
  * Honors reduced-motion via MotionConfig.
  */
-export default function Verse({ text, reference }) {
+export default function Verse({ text, reference, animate = false }) {
   return (
     <blockquote className="verse-accent">
       <span className="verse-text">{text}</span>
-      {reference && <cite className="verse-ref">— {reference}</cite>}
+      {reference && (
+        <cite className="verse-ref">— {reference}</cite>
+      )}
     </blockquote>
   );
 }

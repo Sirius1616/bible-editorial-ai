@@ -17,29 +17,6 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Ambient gold dust on the brand panel */
-.motes {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.motes .mote {
-  position: absolute;
-  border-radius: 999px;
-  background: radial-gradient(circle at 35% 30%, #f6d878, rgba(224, 174, 74, 0.55) 55%, transparent 72%);
-  filter: blur(0.5px);
-  box-shadow: 0 0 8px 1px rgba(224, 174, 74, 0.25);
-}
-
-.auth-brand > *:not(.motes) {
-  position: relative;
-  z-index: 1;
 }
 
 .auth-brand .brand-lockup .brand-name {

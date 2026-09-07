@@ -1,5 +1,5 @@
 import { BookOpen, Loader2 } from "lucide-react";
-import { AnimatedNumber, MotionItem, MotionList, ScoreRing } from "../ui/motion";
+import { AnimatedNumber, MotionItem, MotionList } from "../ui/motion";
 
 export default function QAPanel({ editor }) {
   const { qaResult, qaLoading, checkQA, item } = editor;
@@ -26,11 +26,10 @@ export default function QAPanel({ editor }) {
 
   return (
     <div id="qa-panel">
-      <div className="panel-actions" style={{ flexWrap: "wrap", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="panel-actions">
         <span className="passage-ref">
           <BookOpen size={14} /> {qaResult.reference}
         </span>
-        <ScoreRing value={qaResult.score} label="100" />
         <span
           className={`badge ${qaResult.score >= 90 ? "badge-approved" : qaResult.score >= 70 ? "badge-type" : "badge-rejected"}`}
         >

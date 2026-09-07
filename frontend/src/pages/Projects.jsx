@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import AppLayout from "../components/AppLayout";
 import { AnimatedNumber, MotionItem, MotionList } from "../components/ui/motion";
 import { itemsApi, projectsApi, workspacesApi } from "../api";
@@ -46,12 +45,7 @@ function ProjectCard({ project, items, onOpen }) {
       {total > 0 && (
         <>
           <div className="progress-track">
-            <motion.div
-              className="progress-fill"
-              initial={{ width: 0 }}
-              animate={{ width: `${pct}%` }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            />
+            <div className="progress-fill" style={{ width: `${pct}%` }} />
           </div>
           <div className="project-card-meta" style={{ justifyContent: "space-between" }}>
             <span>{active} active</span>
