@@ -1,92 +1,8 @@
 /* ---------- Layout ---------- */
 .layout {
-  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-top: 14px;
-}
-
-
-/* ── Bible flow — gold ribbon at the very top of the workspace ────── */
-
-.bible-flow {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 14px;
-  z-index: 40;
-  pointer-events: none;
-  overflow: hidden;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(217, 180, 76, 0.06) 15%,
-    rgba(217, 180, 76, 0.14) 50%,
-    rgba(217, 180, 76, 0.06) 85%,
-    transparent 100%
-  );
-}
-
-.bible-flow::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    110deg,
-    transparent 35%,
-    rgba(255, 220, 140, 0.55) 47%,
-    rgba(255, 220, 140, 0.7) 50%,
-    rgba(255, 220, 140, 0.55) 53%,
-    transparent 65%
-  );
-  background-size: 250% 100%;
-  animation: bible-flow-sheen 6s linear infinite;
-  will-change: background-position;
-}
-
-@keyframes bible-flow-sheen {
-  from { background-position: 200% 0; }
-  to   { background-position: -50% 0; }
-}
-
-.bible-flow-book {
-  position: absolute;
-  top: 0;
-  color: rgba(202, 162, 74, 0.85);
-  opacity: 0;
-  animation: bible-flow-drift 18s linear infinite;
-  will-change: transform, opacity;
-  filter: drop-shadow(0 0 5px rgba(217, 180, 76, 0.5));
-}
-
-@keyframes bible-flow-drift {
-  0%   { transform: translateX(-40px); opacity: 0; }
-  5%   { opacity: 0.92; }
-  88%  { opacity: 0.92; }
-  100% { transform: translateX(calc(100vw + 40px)); opacity: 0; }
-}
-
-
-/* ── Work watermark — faint open-book shadow behind all content ───── */
-
-.work-watermark {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-  color: var(--accent);
-  opacity: 0.04;
-  filter: blur(1.5px);
-}
-
-.work-watermark svg {
-  width: min(520px, 58vw);
-  height: auto;
-  opacity: 0.65;
 }
 
 .topbar {
@@ -305,8 +221,6 @@
 }
 
 .content {
-  position: relative;
-  z-index: 1;
   flex: 1;
   width: 100%;
   max-width: 1100px;

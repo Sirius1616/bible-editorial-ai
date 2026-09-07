@@ -1,4 +1,4 @@
-import { BookMarked, BookOpen, LogOut, Moon, Sun } from "lucide-react";
+import { BookMarked, LogOut, Moon, Sun } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { clearToken } from "../api/client";
 import { useEffect, useState } from "react";
@@ -34,11 +34,6 @@ export default function AppLayout({ children, title = "Bible Editorial AI" }) {
 
   return (
     <div className="layout">
-      <div className="bible-flow" aria-hidden="true">
-        <span className="bible-flow-book">
-          <BookOpen size={14} />
-        </span>
-      </div>
       <header className="topbar">
         <div className="brand-lockup">
           <span className="brand-mark">
@@ -79,16 +74,6 @@ export default function AppLayout({ children, title = "Bible Editorial AI" }) {
         </div>
       </header>
       <main className="content">{children}</main>
-
-      <div className="work-watermark" aria-hidden="true">
-        <svg viewBox="0 0 360 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M180 30 C 130 26 80 32 36 52 V 176 C 84 154 136 150 180 156 Z" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
-          <path d="M180 30 C 230 26 280 32 324 52 V 176 C 276 154 224 150 180 156 Z" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
-          <path d="M180 26 V 156" stroke="currentColor" strokeWidth="3" />
-          <path d="M60 74 H 154 M60 92 H 152 M60 110 H 150 M60 128 H 148" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-          <path d="M206 74 H 300 M208 92 H 298 M210 110 H 300 M212 128 H 302" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
-      </div>
     </div>
   );
 }
