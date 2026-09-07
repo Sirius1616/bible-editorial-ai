@@ -171,11 +171,14 @@
 
 .tw-demo {
   margin-top: 1.4rem;
-  padding: 1rem 1.2rem;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(217, 180, 76, 0.2);
+  padding: 1.1rem 1.3rem;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(217, 180, 76, 0.4);
   border-radius: 10px;
   min-height: 8rem;
+  box-shadow:
+    0 0 24px rgba(217, 180, 76, 0.12),
+    inset 0 0 0 1px rgba(217, 180, 76, 0.06);
 }
 
 .tw-stage {
@@ -186,32 +189,32 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.7rem;
 }
 
 .tw-verse {
   font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 0.88rem;
-  color: rgba(217, 180, 76, 0.95);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: rgba(217, 180, 76, 1);
 }
 
 .tw-badge {
   font-family: var(--font-ui);
-  font-size: 0.58rem;
-  font-weight: 600;
+  font-size: 0.62rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.07);
-  padding: 0.18rem 0.55rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(217, 180, 76, 0.18);
+  padding: 0.2rem 0.6rem;
   border-radius: 100px;
 }
 
 .tw-body {
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.92);
   font-family: var(--font-serif);
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   line-height: 1.55;
   min-height: 3rem;
 }
