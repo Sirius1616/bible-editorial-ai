@@ -46,43 +46,6 @@
   z-index: 1;
 }
 
-/* Page-flipping Bible on the right side of the brand panel */
-.auth-flipbook {
-  position: absolute;
-  right: 0.5rem;
-  bottom: 4.5rem;
-  width: 300px;
-  height: 230px;
-  z-index: 0;
-  opacity: 0.95;
-}
-
-/* Fading scripture verses filling the middle band behind the hero */
-.auth-scriptfade {
-  position: absolute;
-  left: 3rem;
-  right: 14rem;
-  bottom: 6rem;
-  height: 10rem;
-  z-index: 0;
-  color: rgba(232, 202, 138, 0.78);
-  font-size: 1.05rem;
-}
-
-@media (max-width: 1180px) {
-  .auth-flipbook {
-    width: 240px;
-    height: 184px;
-    right: 0;
-    bottom: 4rem;
-    opacity: 0.8;
-  }
-
-  .auth-scriptfade {
-    right: 10rem;
-  }
-}
-
 .auth-brand .brand-lockup .brand-name {
   color: #fff;
 }
