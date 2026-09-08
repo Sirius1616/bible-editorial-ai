@@ -78,6 +78,7 @@ describe("ProjectDetail members management", () => {
     await screen.findByText("Project members");
 
     await user.click(screen.getByRole("button", { name: /Add member/i }));
+    await screen.findByDisplayValue("Choose a workspace member…");
     await user.selectOptions(screen.getByLabelText("Workspace member"), "3");
     await user.click(screen.getByRole("button", { name: /Add to project/i }));
 

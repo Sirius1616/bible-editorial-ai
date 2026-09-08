@@ -60,17 +60,23 @@ export default function ProjectDetail() {
       setProject(p);
       setItems(items.sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]));
       if (isAdmin(p.my_role) || canEdit(p.my_role)) {
-        const [ms, ws] = await Promise.all([
-          projectsApi.members(projectId),
-          p.workspace_id ? workspacesApi.get(p.workspace_id) : Promise.resolve(null),
-        ]);
+        const ms = await projectsApi.members(projectId);
         setMembers(ms);
-        setWorkspaceMembers(ws?.members || []);
       }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadWorkspaceMembers() {
+    if (!project?.workspace_id || workspaceMembers.length > 0) return;
+    try {
+      const ws = await workspacesApi.get(project.workspace_id);
+      setWorkspaceMembers(ws?.members || []);
+    } catch (err) {
+      setError(err.message);
     }
   }
 
@@ -575,7 +581,7 @@ export default function ProjectDetail() {
             </form>
           )}
           {!showAddMember && (
-            <button className="secondary" onClick={() => setShowAddMember(true)}>
+            <button className="secondary" onClick={() => { setShowAddMember(true); loadWorkspaceMembers(); }}>
               <UserPlus size={16} /> Add member
             </button>
           )}
