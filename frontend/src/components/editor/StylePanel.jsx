@@ -1,7 +1,17 @@
+import { Loader2, Wand2 } from "lucide-react";
 import { AnimatedNumber, MotionItem, MotionList } from "../ui/motion";
+import { canEdit } from "../../permissions";
 
 export default function StylePanel({ editor }) {
-  const { styleResult, styleMarksOn, setStyleMarksOn } = editor;
+  const {
+    styleResult,
+    styleMarksOn,
+    setStyleMarksOn,
+    applyStyleFix,
+    styleFixing,
+    project,
+  } = editor;
+  const editable = canEdit(project?.my_role);
 
   return (
     <div id="style-panel">
@@ -50,6 +60,18 @@ export default function StylePanel({ editor }) {
           >
             {styleMarksOn ? "Hide highlights" : "Highlight in text"}
           </button>
+          {editable && (
+            <button
+              className="accent"
+              style={{ marginTop: "0.6rem", marginLeft: "0.6rem" }}
+              onClick={applyStyleFix}
+              disabled={styleFixing}
+              title="Rewrite the draft to comply with the style guide"
+            >
+              {styleFixing ? <Loader2 size={14} className="spinner" /> : <Wand2 size={14} />}
+              {styleFixing ? "Applying…" : "Apply style fixes"}
+            </button>
+          )}
         </div>
       )}
     </div>

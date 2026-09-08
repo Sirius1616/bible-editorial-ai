@@ -287,6 +287,100 @@ async def check_style_guide(
 
 
 # ---------------------------------------------------------------------------
+# Style fixing (apply the style guide to a manuscript, #14)
+# ---------------------------------------------------------------------------
+
+# Deterministic substitutions used when no API key is set. Each entry is a
+# (compiled pattern, replacement) applied to the whole body.
+MOCK_STYLE_FIXES: list[tuple[re.Pattern, str]] = [
+    (re.compile(r"\bI\s+(?:think|believe|feel|know|say|see)\b", re.IGNORECASE), ""),
+    (re.compile(r"\b(?:very|really|extremely|quite|totally|absolutely|truly)\s+", re.IGNORECASE), ""),
+    (re.compile(r"\bin order to\b", re.IGNORECASE), "to"),
+    (re.compile(r"\bdue to the fact that\b", re.IGNORECASE), "because"),
+    (re.compile(r"\bTODO\b|\blorem\b|\bPLACEHOLDER\b|\binsert text here\b", re.IGNORECASE), "[passage omitted]"),
+]
+
+
+def build_style_fix_prompt(body: str, style_guide: str, issues: list[dict]) -> str:
+    if issues:
+        issue_lines = "\n".join(
+            f"- “{i.get('snippet', '')}” ({i.get('severity', 'medium')}): {i.get('reason', '')}"
+            for i in issues
+        )
+    else:
+        issue_lines = "- Follow the style guide carefully."
+    return f"""You are an editorial editor for a Bible publishing house.
+
+Rewrite the manuscript below so it fully complies with the style guide.
+Do not invent scripture or change the passage's teaching; only fix the style.
+
+Style guide:
+{style_guide}
+
+Issues found by the style checker to resolve:
+{issue_lines}
+
+Manuscript:
+{body}
+
+Return ONLY the corrected manuscript text. Do not add explanations or headings. Do not use markdown fences."""
+
+
+def build_mock_style_fix(body: str, style_guide: str = "", issues: list[dict] | None = None) -> str:
+    """Apply rule-based corrections when no API key is set."""
+    fixed = body
+    for pattern, replacement in MOCK_STYLE_FIXES:
+        fixed = pattern.sub(replacement, fixed)
+    fixed = re.sub(r"!\s*", ". ", fixed)
+    fixed = fixed.strip()
+    if fixed and not re.search(r"[.!?]\s*$", fixed):
+        fixed += "."
+    words = fixed.split()
+    return " ".join(words)
+
+
+async def fix_style_guide(
+    body: str, style_guide: str = "", issues: list[dict] | None = None
+) -> tuple[str, bool]:
+    """Rewrite a manuscript to comply with the style guide.
+
+    Returns (fixed_body, is_demo).
+    """
+    issues = issues or []
+    if not settings.ANTHROPIC_API_KEY:
+        return build_mock_style_fix(body, style_guide, issues), True
+    prompt = build_style_fix_prompt(body=body, style_guide=style_guide, issues=issues)
+    async with httpx.AsyncClient(timeout=120) as client:
+        try:
+            response = await client.post(
+                url=ANTHROPIC_URL,
+                headers={
+                    "x-api-key": settings.ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": ANTHROPIC_MODEL,
+                    "max_tokens": MAX_TOKENS_JSON,
+                    "messages": [{"role": "user", "content": prompt}],
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+            text = data["content"][0]["text"].strip()
+        except httpx.HTTPStatusError as e:
+            print(f"API error: {e.response.status_code}, {e.response.text}")
+            return body, True
+        except httpx.RequestError as e:
+            print(f"Network Error: {e}")
+            return body, True
+        except (KeyError, IndexError, json.JSONDecodeError) as exc:
+            print(f"Style fix: unparseable LLM response: {exc}")
+            return body, True
+    return text, False
+
+
+# ---------------------------------------------------------------------------
 # Scripture QA (verse-quote verification, #25)
 # ---------------------------------------------------------------------------
 

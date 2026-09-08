@@ -42,6 +42,7 @@ export default function useEditor(projectId, itemId) {
   const [styleResult, setStyleResult] = useState(null);
   const [styleLoading, setStyleLoading] = useState(false);
   const [styleMarksOn, setStyleMarksOn] = useState(false);
+  const [styleFixing, setStyleFixing] = useState(false);
   const [qaResult, setQaResult] = useState(null);
   const [qaLoading, setQaLoading] = useState(false);
   const [consistencyResult, setConsistencyResult] = useState(null);
@@ -265,6 +266,30 @@ export default function useEditor(projectId, itemId) {
     }
   }
 
+  async function applyStyleFix() {
+    if (!body.trim() || !styleResult) return;
+    setStyleFixing(true);
+    setError("");
+    setInfo("");
+    try {
+      const result = await itemsApi.styleFix(projectId, itemId, {
+        body,
+        issues: styleResult.issues,
+      });
+      setStyleMarksOn(false);
+      setBody(result.body);
+      setInfo(
+        result.demo
+          ? "Style fixes applied to the editor in demo mode. Press 'Save new version' to keep them."
+          : "Style fixes applied. Press 'Save new version' to keep them.",
+      );
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setStyleFixing(false);
+    }
+  }
+
   async function checkQA() {
     if (!item?.verse_start) {
       setError("This item needs a verse anchor before it can be QA-checked.");
@@ -480,6 +505,7 @@ export default function useEditor(projectId, itemId) {
     styleResult,
     styleLoading,
     styleMarksOn,
+    styleFixing,
     qaResult,
     qaLoading,
     consistencyResult,
@@ -503,6 +529,7 @@ export default function useEditor(projectId, itemId) {
     runDiff,
     generateDraft,
     checkStyle,
+    applyStyleFix,
     checkQA,
     checkConsistency,
     toggleTranslations,

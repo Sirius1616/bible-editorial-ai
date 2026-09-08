@@ -12,8 +12,8 @@ from app.db.session import get_db
 from app.models.content import ContentItem, ContentVersion
 from app.models.project import Project
 from app.models.user import User
-from app.schemas.content import StyleCheckIn, StyleCheckOut
-from app.services.llm import check_style_guide
+from app.schemas.content import StyleCheckIn, StyleCheckOut, StyleFixIn, StyleFixOut
+from app.services.llm import check_style_guide, fix_style_guide
 
 router = APIRouter(prefix="/projects/{project_id}/items", tags=["style"])
 
@@ -47,3 +47,37 @@ async def style_check(
         raise HTTPException(status_code=503, detail=str(exc))
 
     return {**result, "demo": demo}
+
+
+@router.post("/{item_id}/style-check/fix", response_model=StyleFixOut)
+async def style_check_fix(
+    project_id: int,
+    item_id: int,
+    payload: StyleFixIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Rewrite the manuscript so it complies with the style guide."""
+    project: Project = get_accessible_project(project_id, user, db)
+    ensure_project_role(db, project, user, PROJECT_COMMENT_ROLES)
+    item = db.get(ContentItem, item_id)
+    if item is None or item.project_id != project.id:
+        raise HTTPException(status_code=404, detail="Content item not found")
+
+    body = payload.body
+    if body is None:
+        latest = db.scalar(
+            select(ContentVersion)
+            .where(ContentVersion.content_item_id == item.id)
+            .order_by(ContentVersion.version_number.desc())
+        )
+        body = latest.body if latest else ""
+
+    issues = [i.model_dump() for i in (payload.issues or [])]
+
+    try:
+        fixed, demo = await fix_style_guide(body or "", project.style_guide or "", issues)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+
+    return {"body": fixed, "demo": demo}

@@ -78,6 +78,11 @@ export const itemsApi = {
       method: "POST",
       body: { body },
     }),
+  styleFix: (projectId, itemId, { body, issues }) =>
+    api(`/projects/${projectId}/items/${itemId}/style-check/fix`, {
+      method: "POST",
+      body: { body, issues },
+    }),
   qaCheck: (projectId, itemId, body) =>
     api(`/projects/${projectId}/items/${itemId}/qa`, {
       method: "POST",

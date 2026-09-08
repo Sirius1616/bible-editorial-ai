@@ -51,6 +51,10 @@ vi.mock("../api", () => ({
     diffVersions: vi.fn(),
     generateDraft: vi.fn(),
     styleCheck: vi.fn().mockResolvedValue(mocks.styleResult),
+    styleFix: vi.fn().mockResolvedValue({
+      body: "The verse is great.",
+      demo: true,
+    }),
     review: vi.fn(),
     transition: vi.fn(),
     exportItem: vi.fn(),
@@ -108,5 +112,32 @@ describe("Editor style-guide check", () => {
 
     await user.click(screen.getByRole("button", { name: /Hide highlights/i }));
     expect(document.querySelector(".style-mark")).toBeNull();
+  });
+
+  it("applies style fixes and updates the editor body", async () => {
+    const user = userEvent.setup();
+    const { itemsApi } = await import("../api");
+
+    renderEditor();
+    await screen.findByRole("heading", { name: "Grace" });
+
+    await user.click(screen.getByRole("button", { name: /Style check/i }));
+    await screen.findByText("77/100");
+
+    expect(screen.getByRole("button", { name: /Apply style fixes/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Apply style fixes/i }));
+
+    await waitFor(() => {
+      expect(itemsApi.styleFix).toHaveBeenCalledWith("1", "10", {
+        body: "I think the verse is really great.",
+        issues: mocks.styleResult.issues,
+      });
+    });
+
+    const textarea = screen.getByPlaceholderText(
+      "Write or edit content here. The project style guide will guide AI drafts.",
+    );
+    expect(textarea.value).toBe("The verse is great.");
   });
 });

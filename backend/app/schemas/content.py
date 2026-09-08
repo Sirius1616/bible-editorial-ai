@@ -144,6 +144,16 @@ class StyleCheckOut(BaseModel):
     demo: bool
 
 
+class StyleFixIn(BaseModel):
+    body: str | None = None
+    issues: list[StyleIssue] | None = None
+
+
+class StyleFixOut(BaseModel):
+    body: str
+    demo: bool
+
+
 class CommentUpdate(BaseModel):
     body: str | None = None
     resolved: bool | None = None
