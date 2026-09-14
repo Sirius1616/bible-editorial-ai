@@ -1,9 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.config import settings
+from app.core.ratelimit import limiter
+from app.core.security import (
+    DUMMY_PASSWORD_HASH,
+    create_access_token,
+    hash_password,
+    verify_password,
+)
 from app.db.session import get_db
 from app.models.user import User
 from app.models.workspace import Workspace, WorkspaceMember
@@ -38,9 +45,16 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
 
 
 @router.post("/login", response_model=Token)
-def login(payload: UserLogin, db: Session = Depends(get_db)) -> Token:
+@limiter.limit(settings.LOGIN_RATE_LIMIT)
+def login(
+    request: Request,
+    payload: UserLogin,
+    db: Session = Depends(get_db),
+) -> Token:
     user = db.scalar(select(User).where(User.email == payload.email))
-    if user is None or not verify_password(payload.password, user.hashed_password):
+    hash_to_check = user.hashed_password if user is not None else DUMMY_PASSWORD_HASH
+    password_matches = verify_password(payload.password, hash_to_check)
+    if user is None or not password_matches:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",

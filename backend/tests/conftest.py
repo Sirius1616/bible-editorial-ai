@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.core.ratelimit import limiter
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
@@ -28,6 +29,15 @@ def override_get_db():
 
 
 app.dependency_overrides[get_db] = override_get_db
+
+
+@pytest.fixture(autouse=True)
+def disable_rate_limiter():
+    """Keep the login rate limit out of the normal test suite."""
+    limiter.enabled = False
+    yield
+    limiter.reset()
+    limiter.enabled = True
 
 
 @pytest.fixture(autouse=True)

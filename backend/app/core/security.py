@@ -7,6 +7,10 @@ from app.core.config import settings
 
 ALGORITHM = "HS256"
 
+DUMMY_PASSWORD_HASH = bcrypt.hashpw(
+    b"dummy-password-for-constant-time-comparison", bcrypt.gensalt()
+).decode("utf-8")
+
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
