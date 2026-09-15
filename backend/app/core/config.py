@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     BIBLE_TRANSLATIONS: str = "ESV,NIV,KJV,NASB,NLT"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     INVITE_EXPIRE_MINUTES: int = 60 * 24 * 7
-    LOGIN_RATE_LIMIT: str = "5/minute"
 
     CORS_ORIGINS: str = "http://localhost:3000"
     FRONTEND_URL: str = "http://localhost:3000"

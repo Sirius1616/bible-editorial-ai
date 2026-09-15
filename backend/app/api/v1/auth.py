@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from app.core.config import settings
-from app.core.ratelimit import limiter
+from app.core.ratelimit import rate_limit_client
 from app.core.security import (
     DUMMY_PASSWORD_HASH,
     create_access_token,
@@ -44,13 +43,8 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
     return user
 
 
-@router.post("/login", response_model=Token)
-@limiter.limit(settings.LOGIN_RATE_LIMIT)
-def login(
-    request: Request,
-    payload: UserLogin,
-    db: Session = Depends(get_db),
-) -> Token:
+@router.post("/login", response_model=Token, dependencies=[Depends(rate_limit_client)])
+def login(payload: UserLogin, db: Session = Depends(get_db)) -> Token:
     user = db.scalar(select(User).where(User.email == payload.email))
     hash_to_check = user.hashed_password if user is not None else DUMMY_PASSWORD_HASH
     password_matches = verify_password(payload.password, hash_to_check)

@@ -32,12 +32,10 @@ app.dependency_overrides[get_db] = override_get_db
 
 
 @pytest.fixture(autouse=True)
-def disable_rate_limiter():
-    """Keep the login rate limit out of the normal test suite."""
-    limiter.enabled = False
+def reset_rate_limiter():
+    """Clear the per-IP request counters between tests so the suite is not throttled."""
     yield
     limiter.reset()
-    limiter.enabled = True
 
 
 @pytest.fixture(autouse=True)
