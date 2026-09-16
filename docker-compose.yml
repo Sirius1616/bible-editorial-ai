@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-editorial}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-editorial}
-      POSTGRES_DB: ${POSTGRES_DB:-editorial} 
+      POSTGRES_DB: ${POSTGRES_DB:-editorial}
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
@@ -34,11 +34,11 @@ services:
       context: ./frontend
     restart: unless-stopped
     environment:
-      VITE_PROXY_TARGET: http://backend:8000
+      BACKEND_URL: http://backend:8000
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${FRONTEND_PORT:-3000}:80"
 
   n8n:
     image: n8nio/n8n
