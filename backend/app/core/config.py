@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,6 +11,15 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     SECRET_KEY: str = "change-me-in-production-change-me-in-production-1234"
     DATABASE_URL: str = "postgresql+psycopg://editorial:editorial@localhost:5432/editorial"
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def normalize_database_url(cls, v: str) -> str:
+        """Accept psycopg2-style URLs (Railway gives postgresql://) and
+        normalize them to the psycopg3 dialect SQLAlchemy needs."""
+        if v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+psycopg://", 1)
+        return v
     ANTHROPIC_API_KEY: str = ""
     BIBLE_API_KEY: str = ""
     BIBLE_TRANSLATIONS: str = "ESV,NIV,KJV,NASB,NLT"
