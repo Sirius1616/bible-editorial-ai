@@ -1,0 +1,7 @@
+{
+  "name": "bible-editorial-ai",
+  "private": true,
+  "devDependencies": {
+    "railway": "3.11.0"
+  }
+}
