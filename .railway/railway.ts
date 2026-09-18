@@ -29,7 +29,7 @@ export default defineRailway(() => {
   const frontend = service("frontend", {
     source: github("Sirius1616/bible-editorial-ai", { rootDirectory: "frontend" }),
     env: {
-      BACKEND_URL: "https://${{backend.RAILWAY_PUBLIC_DOMAIN}}",
+      BACKEND_URL: "http://${{backend.RAILWAY_PRIVATE_DOMAIN}}:8080",
     },
   });
 
