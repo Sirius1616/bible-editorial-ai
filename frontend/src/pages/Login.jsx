@@ -46,42 +46,46 @@ export default function Login() {
   return (
     <div className="auth-wrap">
       <motion.aside
-        className="auth-brand"
+        className="auth-side"
         initial={{ opacity: 0, x: -18 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="brand-lockup">
-          <span className="brand-mark">
-            <BookMarked size={18} />
-          </span>
-          <div>
-            <div className="brand-name">Bible Editorial AI</div>
-            <div className="brand-tagline">Editorial production studio</div>
+        <div className="auth-brand-head">
+          <div className="brand-lockup">
+            <span className="brand-mark">
+              <BookMarked size={18} />
+            </span>
+            <div>
+              <div className="brand-name">Bible Editorial AI</div>
+              <div className="brand-tagline">Editorial production studio</div>
+            </div>
           </div>
         </div>
 
-        <div className="auth-hero">
-          <span className="auth-kicker">Editorial production studio</span>
-          <h2>Editorial production, with the help of an AI writing partner.</h2>
-          <p>
-            Draft study notes, devotionals, and reference entries against your project's style
-            guide. Review versions, capture editorial comments, and approve work — all in one
-            studio built for Bible publishers.
-          </p>
+        <div className="auth-brand-story">
+          <div className="auth-hero">
+            <span className="auth-kicker">Editorial production studio</span>
+            <h2>Editorial production, with the help of an AI writing partner.</h2>
+            <p>
+              Draft study notes, devotionals, and reference entries against your project's style
+              guide. Review versions, capture editorial comments, and approve work — all in one
+              studio built for Bible publishers.
+            </p>
 
-          <TypewriterDemo />
+            <TypewriterDemo />
 
-          <blockquote className="quote">
-            "Your word is a lamp to my feet and a light to my path."
-            <br />
-            <span style={{ fontSize: "0.85rem", fontStyle: "normal", opacity: 0.8 }}>
-              — Psalm 119:105
-            </span>
-          </blockquote>
+            <blockquote className="quote">
+              "Your word is a lamp to my feet and a light to my path."
+              <br />
+              <span style={{ fontSize: "0.85rem", fontStyle: "normal", opacity: 0.8 }}>
+                — Psalm 119:105
+              </span>
+            </blockquote>
+          </div>
+
+          <div className="brand-tagline">Built for Bible &amp; Christian book publishers</div>
         </div>
-
-        <div className="brand-tagline">Built for Bible &amp; Christian book publishers</div>
       </motion.aside>
 
       <motion.div
