@@ -1,0 +1,336 @@
+/* ============================================================
+   Responsive layout — layered last so it safely overrides.
+   Breakpoints:
+     ≤1080  laptop / tablet-landscape squeeze
+     ≤ 900  tablet portrait (grids already collapse in base.css)
+     ≤ 768  large phones / mobile
+     ≤ 560  small phones
+     ≤ 400  compact phones
+   ============================================================ */
+
+@media (max-width: 1080px) {
+  .content {
+    max-width: 960px;
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .brand-tagline {
+    display: none;
+  }
+
+  /* Wide data table scrolls horizontally instead of crushing */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .items-table {
+    min-width: 720px;
+  }
+
+  .page-head,
+  .editor-head {
+    flex-wrap: wrap;
+  }
+
+  .editor-head .actions,
+  .editor-head .transition-form,
+  .editor-head .assign-inline {
+    flex-wrap: wrap;
+  }
+
+  .editor-actions {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .diff-pickers {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 1.05rem 0.9rem 2.4rem;
+  }
+
+  /* --- Topbar compact --- */
+  .topbar {
+    padding: 0.55rem 0.9rem;
+    gap: 0.5rem;
+  }
+
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+  }
+
+  .brand-name {
+    font-size: 0.9rem;
+  }
+
+  .topbar-right {
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .user-chip {
+    gap: 0.45rem;
+  }
+
+  .user-email {
+    display: none;
+  }
+
+  /* Notification dropdown spans the screen width on mobile */
+  .notif-dropdown {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    top: 3.6rem;
+    width: auto;
+    max-width: none;
+  }
+
+  /* --- Headers stack --- */
+  .page-head,
+  .editor-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .page-head .row,
+  .editor-head .actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .editor-head .transition-form {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  /* --- Filter bar --- */
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding-bottom: 0.25rem;
+  }
+
+  .filter-tab {
+    white-space: nowrap;
+  }
+
+  .search-box {
+    max-width: none;
+    width: 100%;
+  }
+
+  /* --- Editor panels --- */
+  .panel-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+  }
+
+  .panel-title .row {
+    margin-left: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .editor-actions .row {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .editor-textarea,
+  .annotations-view {
+    font-size: 0.98rem;
+  }
+
+  /* --- Member rows / forms --- */
+  .member-row {
+    flex-wrap: wrap;
+  }
+
+  .member-row select {
+    max-width: 100%;
+  }
+
+  .transfer-form {
+    flex-wrap: wrap;
+  }
+
+  .transfer-form select {
+    flex: 1 1 100%;
+  }
+
+  .invite-form {
+    grid-template-columns: 1fr;
+  }
+
+  .invite-form button {
+    justify-self: start;
+  }
+
+  /* --- Cards --- */
+  .card,
+  .editor-panel {
+    padding: 1rem 0.9rem;
+  }
+
+  .auth-panel {
+    padding: 1.25rem 1rem;
+  }
+
+  .auth-card {
+    padding: 1.4rem 1.25rem;
+  }
+
+  .auth-hero h2 {
+    font-size: 1.7rem;
+  }
+
+  /* Avoid horizontal page overflow from wide content */
+  .crumbs,
+  .meta-line,
+  .title-row,
+  .project-card-meta,
+  .workspace-card-meta,
+  .anchor-row {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar-right .link-button {
+    font-size: 0.84rem;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.76rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    gap: 0.7rem;
+  }
+
+  .editor-head .actions,
+  .editor-head .title-row {
+    align-items: flex-start;
+  }
+
+  .editor-head .transition-form select {
+    max-width: 100%;
+  }
+
+  .project-grid,
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-tab {
+    padding: 0.28rem 0.55rem;
+    font-size: 0.76rem;
+  }
+
+  .auth-hero h2 {
+    font-size: 1.5rem;
+  }
+
+  .auth-card h1 {
+    font-size: 1.2rem;
+  }
+
+  .form-actions {
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+
+  .form-actions button {
+    flex: 1 1 auto;
+  }
+
+  /* Bottom-anchored action rows that would otherwise crowd the greedy textarea */
+  .editor-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .editor-actions .row {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 400px) {
+  .topbar {
+    padding: 0.5rem 0.7rem;
+  }
+
+  .topbar-right .link-button {
+    font-size: 0.8rem;
+  }
+
+  .brand-name {
+    font-size: 0.84rem;
+  }
+
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+  }
+
+  .crumbs {
+    font-size: 0.78rem;
+  }
+
+  .transition-form select {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .refs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .anchor-row input {
+    min-width: 90px;
+  }
+
+  .auth-panel {
+    padding: 1rem 0.75rem;
+  }
+
+  .auth-card {
+    padding: 1.2rem 1rem;
+  }
+
+  .workspace-card-head {
+    align-items: flex-start;
+  }
+}
