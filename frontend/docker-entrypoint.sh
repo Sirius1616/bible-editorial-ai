@@ -3,7 +3,10 @@ set -e
 
 BACKEND_URL="${BACKEND_URL:-http://localhost:8000}"
 RESOLVER="$(awk '/^nameserver/{print $2; exit}' /etc/resolv.conf)"
-: "${RESOLVER:=1.1.1.1}"
+if echo "$RESOLVER" | grep -q ':'; then
+  RESOLVER="[${RESOLVER}]"
+fi
+: "${RESOLVER:=[::1]}"
 export RESOLVER
 envsubst '${BACKEND_URL} ${RESOLVER}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
 
