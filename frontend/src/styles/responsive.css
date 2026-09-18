@@ -19,7 +19,8 @@
     flex-wrap: wrap;
   }
 
-  .brand-tagline {
+  /* Only the app topbar tagline hides on mobile — the auth brand hero keeps its brand text */
+  .topbar .brand-tagline {
     display: none;
   }
 

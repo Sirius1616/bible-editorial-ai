@@ -257,7 +257,26 @@
   }
 
   .auth-brand {
-    display: none;
+    padding: 1.6rem 1.25rem 1.4rem;
+    gap: 1.1rem;
+  }
+
+  .auth-brand .auth-hero h2 {
+    font-size: 1.55rem;
+  }
+
+  .auth-brand .auth-hero p {
+    font-size: 0.9rem;
+  }
+
+  .auth-brand .tw-demo {
+    min-height: 6.5rem;
+  }
+
+  .auth-brand .quote {
+    margin-top: 1.4rem;
+    padding-top: 1.1rem;
+    font-size: 0.95rem;
   }
 }
 
