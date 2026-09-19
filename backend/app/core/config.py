@@ -20,6 +20,21 @@ class Settings(BaseSettings):
         if v.startswith("postgresql://"):
             return v.replace("postgresql://", "postgresql+psycopg://", 1)
         return v
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def enforce_secret_key_strength(cls, v: str, info) -> str:
+        """Refuse to boot with the placeholder key in production — a weak JWT
+        secret lets anyone forge admin tokens. Dev/test keep a usable default."""
+        environment = info.data.get("ENVIRONMENT", "development") or "development"
+        is_placeholder = "change-me" in v or v in {"", "your-secret-key-here"}
+        if environment == "production" and (len(v) < 32 or is_placeholder):
+            raise ValueError(
+                "SECRET_KEY must be ≥32 bytes and non-placeholder in production; "
+                "set a strong value (e.g. `openssl rand -hex 32`) in the host env."
+            )
+        return v
+
     ANTHROPIC_API_KEY: str = ""
     BIBLE_API_KEY: str = ""
     BIBLE_TRANSLATIONS: str = "ESV,NIV,KJV,NASB,NLT"

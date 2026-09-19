@@ -363,6 +363,11 @@ def update_comment(
     comment = db.get(Comment, comment_id)
     if comment is None or comment.content_item_id != item_id:
         raise HTTPException(status_code=404, detail="Comment not found")
+    if comment.author_id != user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only edit your own comments",
+        )
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(comment, field, value)
     db.commit()
