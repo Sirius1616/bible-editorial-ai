@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -53,12 +55,30 @@ def login(payload: UserLogin, db: Session = Depends(get_db)) -> Token:
     user = db.scalar(select(User).where(User.email == payload.email))
     hash_to_check = user.hashed_password if user is not None else DUMMY_PASSWORD_HASH
     password_matches = verify_password(payload.password, hash_to_check)
-    if user is None or not password_matches:
+    if user is None or not password_matches or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
     return Token(access_token=create_access_token(user.id))
+
+
+@router.post(
+    "/me/deactivate",
+    response_model=None,
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def deactivate_me(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Soft-delete the current account. Keeps all authored content / comments /
+    history (no hard cascade) and immediate-rejects on the next request that
+    carries a token. A re-login after this fails because is_active is False.
+    """
+    current_user.is_active = False
+    current_user.deleted_at = datetime.now(timezone.utc)
+    db.commit()
 
 
 @router.get("/me", response_model=UserOut)
