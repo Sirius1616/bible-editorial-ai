@@ -7,7 +7,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.core.ratelimit import limiter
+from app.core.ratelimit import (
+    draft_limiter,
+    login_limiter,
+    register_limiter,
+    style_limiter,
+)
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
@@ -33,9 +38,12 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture(autouse=True)
 def reset_rate_limiter():
-    """Clear the per-IP request counters between tests so the suite is not throttled."""
+    """Clear the per-key request counters between tests so the suite is not throttled."""
     yield
-    limiter.reset()
+    login_limiter.reset()
+    register_limiter.reset()
+    draft_limiter.reset()
+    style_limiter.reset()
 
 
 @pytest.fixture(autouse=True)

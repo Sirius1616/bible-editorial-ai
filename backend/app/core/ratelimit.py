@@ -1,14 +1,22 @@
 import time
 
-from fastapi import HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
+
+from app.api.deps import get_current_user
+from app.models.user import User
 
 
 class FixedWindowRateLimiter:
-    """Per-IP, fixed-window rate limiter with hard 60-second buckets.
+    """Per-key, fixed-window rate limiter with hard 60-second buckets.
 
-    Standard semantics: at most ``max_requests`` requests per client IP in any
+    Standard semantics: at most ``max_requests`` requests per key in any
     aligned ``window_seconds`` bucket. Once a bucket is full, every further
-    request from that IP gets HTTP 429 until the bucket rolls over.
+    request for that key gets HTTP 429 until the bucket rolls over.
+
+    The default key is the client IP. It is derived from the first value of
+    ``X-Forwarded-For``; in front of a trusted proxy (Railway) that value is
+    the real client address because the proxy rewrites the header. Callers
+    may pass an explicit key (e.g. ``user:{id}``) for authenticated routes.
     """
 
     def __init__(self, max_requests: int = 5, window_seconds: int = 60):
@@ -22,13 +30,17 @@ class FixedWindowRateLimiter:
         self._hits.clear()
 
     def check(self, request: Request) -> None:
-        ip = self._client_ip(request)
+        self._check_key(self._client_ip(request))
+
+    def check_key(self, key: str) -> None:
+        self._check_key(key)
+
+    def _check_key(self, key: str) -> None:
         now = int(time.monotonic())
         self._prune(now)
 
         bucket = now // self.window_seconds
-        key = (ip, bucket)
-        count = self._hits.get(key, 0)
+        count = self._hits.get((key, bucket), 0)
 
         if count >= self.max_requests:
             retry_after = max(1, self.window_seconds - (now % self.window_seconds))
@@ -38,7 +50,7 @@ class FixedWindowRateLimiter:
                 headers={"Retry-After": str(retry_after)},
             )
 
-        self._hits[key] = count + 1
+        self._hits[(key, bucket)] = count + 1
 
     def _prune(self, now: int) -> None:
         if now - self._last_prune < self.window_seconds:
@@ -55,9 +67,33 @@ class FixedWindowRateLimiter:
         return request.client.host if request.client else "unknown"
 
 
-limiter = FixedWindowRateLimiter()
+login_limiter = FixedWindowRateLimiter(max_requests=5, window_seconds=60)
+register_limiter = FixedWindowRateLimiter(max_requests=10, window_seconds=60)
+draft_limiter = FixedWindowRateLimiter(max_requests=20, window_seconds=60)
+style_limiter = FixedWindowRateLimiter(max_requests=20, window_seconds=60)
 
 
 def rate_limit_client(request: Request) -> None:
-    """FastAPI dependency: reject the request once the IP's window is full."""
-    limiter.check(request)
+    """Reject login once the client IP's window is full."""
+    login_limiter.check(request)
+
+
+def rate_limit_register(request: Request) -> None:
+    """Throttle account creation per client IP (prevents mass sign-ups)."""
+    register_limiter.check(request)
+
+
+def rate_limit_draft(
+    request: Request, user: User = Depends(get_current_user)
+) -> None:
+    """Throttle AI draft generation per authenticated user (billing guard)."""
+    draft_limiter.check(request)
+    draft_limiter.check_key(f"user:{user.id}")
+
+
+def rate_limit_style(
+    request: Request, user: User = Depends(get_current_user)
+) -> None:
+    """Throttle style-check/QA/consistency calls per authenticated user."""
+    style_limiter.check(request)
+    style_limiter.check_key(f"user:{user.id}")
