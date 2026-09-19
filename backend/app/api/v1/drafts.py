@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import PROJECT_EDIT_ROLES, ensure_project_role, get_current_user
 from app.api.v1.projects import get_accessible_project
 from app.core.config import settings
+from app.core.ratelimit import rate_limit_draft
 from app.db.session import get_db
 from app.models.content import ContentItem, ContentVersion
 from app.models.project import Project
@@ -18,7 +19,12 @@ from app.services.llm import generate_draft, stream_draft
 router = APIRouter(prefix="/projects/{project_id}/items/{item_id}/draft", tags=["drafts"])
 
 
-@router.post("", response_model=ContentVersionOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=ContentVersionOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit_draft)],
+)
 async def create_draft(
     project_id: int,
     item_id: int,
@@ -61,7 +67,7 @@ async def create_draft(
     return version
 
 
-@router.post("/stream")
+@router.post("/stream", dependencies=[Depends(rate_limit_draft)])
 async def create_draft_stream(
     project_id: int,
     item_id: int,

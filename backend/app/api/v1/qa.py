@@ -7,6 +7,7 @@ from app.api.deps import (
     ensure_project_role,
     get_current_user,
 )
+from app.core.ratelimit import rate_limit_style
 from app.api.v1.projects import get_accessible_project
 from app.db.session import get_db
 from app.models.content import ContentItem, ContentVersion
@@ -18,7 +19,11 @@ from app.services.llm import run_scripture_qa
 router = APIRouter(prefix="/projects/{project_id}/items", tags=["qa"])
 
 
-@router.post("/{item_id}/qa", response_model=QAOut)
+@router.post(
+    "/{item_id}/qa",
+    response_model=QAOut,
+    dependencies=[Depends(rate_limit_style)],
+)
 async def scripture_qa(
     project_id: int,
     item_id: int,

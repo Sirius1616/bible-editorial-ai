@@ -7,6 +7,7 @@ from app.api.deps import (
     ensure_project_role,
     get_current_user,
 )
+from app.core.ratelimit import rate_limit_style
 from app.api.v1.projects import get_accessible_project
 from app.db.session import get_db
 from app.models.content import ContentItem, ContentVersion
@@ -44,7 +45,11 @@ def _latest_bodies(db: Session, project_id: int) -> list[str]:
     return bodies
 
 
-@router.post("/{item_id}/consistency", response_model=ConsistencyOut)
+@router.post(
+    "/{item_id}/consistency",
+    response_model=ConsistencyOut,
+    dependencies=[Depends(rate_limit_style)],
+)
 async def consistency_check(
     project_id: int,
     item_id: int,

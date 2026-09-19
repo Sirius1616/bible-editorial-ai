@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from app.core.ratelimit import rate_limit_client
+from app.core.ratelimit import rate_limit_client, rate_limit_register
 from app.core.security import (
     DUMMY_PASSWORD_HASH,
     create_access_token,
@@ -18,7 +18,12 @@ from app.schemas.user import Token, UserCreate, UserLogin, UserOut
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=UserOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit_register)],
+)
 def register(payload: UserCreate, db: Session = Depends(get_db)) -> User:
     existing = db.scalar(select(User).where(User.email == payload.email))
     if existing is not None:

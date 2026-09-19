@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.ratelimit import rate_limit_style
 from app.api.v1.projects import get_accessible_project
 from app.db.session import get_db
 from app.models.content import ContentItem
@@ -13,7 +14,11 @@ from app.services.translation import fetch_passage
 router = APIRouter(prefix="/projects/{project_id}/items", tags=["translations"])
 
 
-@router.get("/{item_id}/translations", response_model=TranslationComparisonOut)
+@router.get(
+    "/{item_id}/translations",
+    response_model=TranslationComparisonOut,
+    dependencies=[Depends(rate_limit_style)],
+)
 async def get_translations(
     project_id: int,
     item_id: int,

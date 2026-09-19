@@ -7,6 +7,7 @@ from app.api.deps import (
     ensure_project_role,
     get_current_user,
 )
+from app.core.ratelimit import rate_limit_style
 from app.api.v1.projects import get_accessible_project
 from app.db.session import get_db
 from app.models.content import ContentItem, ContentVersion
@@ -18,7 +19,11 @@ from app.services.llm import check_style_guide, fix_style_guide
 router = APIRouter(prefix="/projects/{project_id}/items", tags=["style"])
 
 
-@router.post("/{item_id}/style-check", response_model=StyleCheckOut)
+@router.post(
+    "/{item_id}/style-check",
+    response_model=StyleCheckOut,
+    dependencies=[Depends(rate_limit_style)],
+)
 async def style_check(
     project_id: int,
     item_id: int,
@@ -49,7 +54,11 @@ async def style_check(
     return {**result, "demo": demo}
 
 
-@router.post("/{item_id}/style-check/fix", response_model=StyleFixOut)
+@router.post(
+    "/{item_id}/style-check/fix",
+    response_model=StyleFixOut,
+    dependencies=[Depends(rate_limit_style)],
+)
 async def style_check_fix(
     project_id: int,
     item_id: int,
